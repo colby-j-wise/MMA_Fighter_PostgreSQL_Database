@@ -1,0 +1,110 @@
+CREATE TABLE Fighter
+(
+	fid:		INTEGER,
+	lname:		VARCHAR(255),
+	fname:		VARCHAR(255),
+	dob:		DATE,
+	sex:		CHAR(1),
+	nationality:	VARCHAR(255),
+	wins:		INTEGER,	-- perhaps just calculate from matches
+	losses:		INTEGER,	-- ditto above
+	draws:		INTEGER,	-- ditto above
+	nc:		INTEGER,	-- ditto above
+	arm_reach:	REAL,
+	leg_reach:	REAL,
+	PRIMARY KEY (fid)
+)
+
+CREATE TABLE Nickname
+(
+	nid:	INTEGER,
+	name:	VARCHAR(255),
+	PRIMARY KEY (nid, name), -- multiple nicknames?
+	FOREIGN KEY (nid) REFERENCES Fighter(fid)
+)
+
+CREATE TABLE Team
+(
+	tid:	INTEGER,
+	name:	VARCHAR(255),	-- should name itself be unique, thus do away with tid?
+	PRIMARY KEY (tid)
+)
+
+CREATE TABLE TeamMember
+(
+	fid:	INTEGER,
+	tid:	INTEGER,
+	PRIMARY KEY (fid, tid),
+	FOREIGN KEY (fid) REFERENCES Fighter(fid)
+		ON DELETE CASCADE,
+	FOREIGN KEY (tid) REFERENCES Team(tid)
+		ON DELETE CASCADE
+)
+
+CREATE TABLE Weightclass
+(
+	wid:	INTEGER,
+	name:	VARCHAR(255), -- name itself should be unique
+	PRIMARY KEY (wid)
+)
+
+CREATE TABLE Ranking
+(
+	fid:	INTEGER,
+	wid:	INTEGER,
+	rnum:	INTEGER,
+	PRIMARY KEY (fid, wid),
+	FOREIGN KEY (fid) REFERENCES Fighter(fid)
+		ON DELETE CASCADE,
+	FOREIGN KEY (wid) REFERENCES Weightclass(wid)
+		ON DELETE CASCADE
+)
+
+CREATE TABLE Event
+(
+	eid:		INTEGER,
+	name:		VARCHAR(255),
+	date:		DATE,
+	location:	VARCHAR(255),
+	PRIMARY KEY (eid)
+)
+
+CREATE TABLE Match
+(
+	mid:		INTEGER,
+	f1_id:		INTEGER,
+	f2_id:		INTEGER,
+	wid:		INTEGER,
+	eid:		INTEGER,
+	f1_result:	VARCHAR(255),
+	f2_result:	VARCHAR(255),
+	method:		VARCHAR(255),
+	PRIMARY KEY (mid),
+	FOREIGN KEY (f1_id) REFERENCES Fighter(fid),
+	FOREIGN KEY (f2_id) REFERENCES Fighter(fid),
+	FOREIGN KEY (wid) REFERENCES Weightclass(wid),
+	FOREIGN KEY (eid) REFERENCES Event(eid)
+		ON DELETE CASCADE
+)
+
+CREATE TABLE Round
+(
+	mid:		INTEGER,
+	f1_id:		INTEGER, -- possible to retrieve using mid?
+	f2_id:		INTEGER, -- ditto above
+	rnum:		INTEGER,
+	time:		INTERVAL,
+	f1_knockdowns:	INTEGER,
+	f1_strikes:	INTEGER,
+	f1_takedowns:	INTEGER,
+	f1_sub_att:	INTEGER,
+	f2_knockdowns:	INTEGER,
+	f2_strikes:	INTEGER,
+	f2_takedowns:	INTEGER,
+	f2_sub_att:	INTEGER,
+	PRIMARY KEY (mid, rnum),
+	FOREIGN KEY (mid) REFERENCES Match(mid)
+		ON DELETE CASCADE,
+	FOREIGN KEY (f1_id) REFERENCES Fighter(fid),
+	FOREIGN KEY (f2_id) REFERENCES Fighter(fid)
+)
