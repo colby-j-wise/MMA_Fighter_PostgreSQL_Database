@@ -1,14 +1,12 @@
 -- Translation from ER-Diagram:
 -- 1) Match encapsulates the relationships 'Fights in', 'Fought at', and
 --    'Belongs to' in addition to the entity 'Match'.
--- 2) Round encapsulates the relationship 'has' (between the entities 'Match'
---    and 'Round') in addition to the entity 'Round'.
--- 3) Nickname encapsulates the relationship 'has' (between the entities
---    'Fighter' and 'Nickname') and the entity 'Nickname'.
+-- 2) Round encapsulates the relationship 'Has round' and the entity 'Round'.
+-- 3) Nickname encapsulates the relationship 'nicknamed' and the entity
+--    'Nickname'.
 -- 4) TeamMember is derived from the relationship 'Member of'.
--- 5) Ranking encapsulates the 'has' relationship (between the entities
---    'Fighter' and 'Ranking'), the 'Belongs to' relationship (between
---    the entities 'Ranking' and 'Weight class'), and the entity 'Ranking'.
+-- 5) Ranking encapsulates the 'ranking' and 'Belongs to' relationships and
+--    the entity 'Ranking'.
 
 -- Fighter:
 -- Maintain information about fighters.
