@@ -1,166 +1,105 @@
--- Translation from ER-Diagram:
--- 1) Match encapsulates the relationships 'Fights in', 'Fought at', and
---    'Belongs to' in addition to the entity 'Match'.
--- 2) Round encapsulates the relationship 'Has round' and the entity 'Round'.
--- 3) Nickname encapsulates the relationship 'nicknamed' and the entity
---    'Nickname'.
--- 4) TeamMember is derived from the relationship 'Member of'.
--- 5) Ranking encapsulates the 'ranking' and 'Belongs to' relationships and
---    the entity 'Ranking'.
-
--- Fighter:
--- Maintain information about fighters.
 CREATE TABLE Fighter
 (
-	fid:		INTEGER,      -- create index for fighter
-	lname:		VARCHAR(255), -- last name
-	fname:		VARCHAR(255), -- first name
-	dob:		DATE,         -- date of birth
-	sex:		CHAR(1),
-	nationality:	VARCHAR(255),
-	wins:		INTEGER,       -- perhaps just calculate from matches
-	losses:		INTEGER,       -- ditto
-	draws:		INTEGER,       -- ditto
-	nc:		INTEGER,       -- ditto
-	weight:		REAL,          -- INTEGER may suffice
-	height:		REAL,          -- ditto
-	arm_reach:	REAL,          -- ditto
-	leg_reach:	REAL,          -- ditto
+	fid		INTEGER NOT NULL,
+	lname		VARCHAR(255),
+	fname		VARCHAR(255),
+	dob		DATE,
+	sex		CHAR(1),
+	nationality	VARCHAR(255),
+	wins		INTEGER,
+	losses		INTEGER,
+	draws		INTEGER,
+	nc		INTEGER,
+	weight		REAL,
+	height		REAL,
+	arm_reach	REAL,
+	leg_reach	REAL,
+	nickname	VARCHAR(255),
 	PRIMARY KEY (fid)
-)
+);
 
--- Nickname:
--- Fighters may have 0+ nicknames. For instance, Conor McGregor is known as
--- 'The Notorious' as well as 'Mystic Mac'.
-CREATE TABLE Nickname
-(
-	nid:	INTEGER,
-	name:	VARCHAR(255),
-	PRIMARY KEY (nid, name),
-	FOREIGN KEY (nid) REFERENCES Fighter(fid)
-)
-
--- Team:
--- Teams/gyms have 1+ fighters.  Generally, their names are unique, but like
--- band names, it is possible for teams that did not know of each other to
--- have the same name.
 CREATE TABLE Team
 (
-	tid:	INTEGER, -- create index for team names
-	name:	VARCHAR(255),
+	tid	INTEGER NOT NULL,
+	name	VARCHAR(255),
 	PRIMARY KEY (tid)
-)
+);
 
--- TeamMember:
--- Fighters may or may not belong to a team/gym. By the way, these teams differ
--- from other sports in that no matches or events take place wherein teams
--- fight each other.  Teams are more like training groups in mma.
 CREATE TABLE TeamMember
 (
-	fid:	INTEGER, -- Fighter
-	tid:	INTEGER, -- Team
+	fid	INTEGER NOT NULL,
+	tid	INTEGER NOT NULL,
 	PRIMARY KEY (fid, tid),
 	FOREIGN KEY (fid) REFERENCES Fighter(fid)
 		ON DELETE CASCADE,
 	FOREIGN KEY (tid) REFERENCES Team(tid)
 		ON DELETE CASCADE
-)
+);
 
--- Weightclass:
--- There are many weight classes and each match is fought at one of them.
--- Contrary to popular belief, fighters do not belong to weight classes, but
--- instead fight in matches at particular weight classes (ie, fighters are not
--- bound to any particular weight class).
 CREATE TABLE Weightclass
 (
-	wid:	INTEGER,      -- create index for weight classes
-	name:	VARCHAR(255), -- 'featherweight', 'lightweight', etc.
+	wid	INTEGER NOT NULL,
+	name	VARCHAR(255) NOT NULL,
 	PRIMARY KEY (wid),
 	UNIQUE (name)
-)
+);
 
--- Ranking:
--- Fighters occasionally fight in different weight classes, so they should be
--- ranked according to a weight class
 CREATE TABLE Ranking
 (
-	fid:	INTEGER, -- fighter
-	wid:	INTEGER, -- weight class
-	rnum:	INTEGER, -- rank number
+	fid	INTEGER NOT NULL,
+	wid	INTEGER NOT NULL,
+	rank	INTEGER,
 	PRIMARY KEY (fid, wid),
 	FOREIGN KEY (fid) REFERENCES Fighter(fid)
 		ON DELETE CASCADE,
 	FOREIGN KEY (wid) REFERENCES Weightclass(wid)
 		ON DELETE CASCADE
-)
+);
 
--- Event:
--- Matches are held during UFC events, each of which follows a numbered
--- naming convention such as 'UFC 200' or 'UFC Fight Night 60'.
 CREATE TABLE Event
 (
-	eid:		INTEGER,      -- create index for events
-	name:		VARCHAR(255), -- name of the event (always unique)
-	date:		DATE,         -- date of the event
-	location:	VARCHAR(255), -- location of the event
+	eid		INTEGER NOT NULL,
+	name		VARCHAR(255) NOT NULL,
+	location	VARCHAR(255),
+	date		DATE,
 	PRIMARY KEY (eid),
 	UNIQUE (name)
-)
+);
 
--- Match:
--- Matches occur between two fighters at a particular UFC event and at a
--- particular weight class.  As mentioned before, fighters occasionally
--- fight at different weight classes (Conor McGregor, for instance, won the
--- featherweight title in December 2015 and the lightweight title November
--- 2016).  Furthermore, information about the result of the bout is
--- important.  Currently, fighter 1 and fighter 2 results are both kept,
--- however, since fights are binary, perhaps information about only one
--- should be maintained, with the other being the opposite (if a win/loss) or
--- identical (if a draw/nc).
--- Note: Fighters may face each other more than once, thus it is paramount
--- to differentiate events.
 CREATE TABLE Match
 (
-	mid:		INTEGER,      -- create index for matches
-	f1_id:		INTEGER,      -- fighter 1
-	f2_id:		INTEGER,      -- fighter 2
-	wid:		INTEGER,      -- weight class
-	eid:		INTEGER,      -- event
-	f1_result:	VARCHAR(255), -- win/loss/draw/nc for fighter 1
-	f2_result:	VARCHAR(255), -- loss/win/draw/nc for fighter 2
-	method:		VARCHAR(255), -- 'KO', 'TKO', 'submission', etc.
-	PRIMARY KEY (mid),
-	UNIQUE (eid, f1_id, f2_id),
-	FOREIGN KEY (f1_id) REFERENCES Fighter(fid),
-	FOREIGN KEY (f2_id) REFERENCES Fighter(fid),
-	FOREIGN KEY (wid) REFERENCES Weightclass(wid),
+	mid		INTEGER NOT NULL,
+	eid		INTEGER NOT NULL,
+	fid1		INTEGER NOT NULL,
+	fid2		INTEGER NOT NULL,
+	f1_result	VARCHAR(255),
+	result_rnd	INTEGER,
+	result_time	INTEGER,
+	method		VARCHAR(255),
+	PRIMARY KEY (mid, eid),
+	UNIQUE (eid, fid1, fid2),
 	FOREIGN KEY (eid) REFERENCES Event(eid)
+		ON DELETE CASCADE,
+	FOREIGN KEY (fid1) REFERENCES Fighter(fid)
+		ON DELETE CASCADE,
+	FOREIGN KEY (fid2) REFERENCES Fighter(fid)
 		ON DELETE CASCADE
-)
+);
 
--- Round:
--- Matches are composed of rounds. Relevant information about each round,
--- such as fighter performance statistics, should be maintained at the per
--- round level. Currently, knockdowns, strikes, submission attempts, and
--- takedowns are kept.
 CREATE TABLE Round
 (
-	mid:		INTEGER,  -- the match
-	f1_id:		INTEGER,  -- fighter 1
-	f2_id:		INTEGER,  -- fighter 2
-	rnum:		INTEGER,  -- round number
-	time:		INTERVAL, -- round time duration
-	f1_knockdowns:	INTEGER,
-	f1_strikes:	INTEGER,
-	f1_takedowns:	INTEGER,
-	f1_sub_att:	INTEGER,
-	f2_knockdowns:	INTEGER,
-	f2_strikes:	INTEGER,
-	f2_takedowns:	INTEGER,
-	f2_sub_att:	INTEGER,
-	PRIMARY KEY (mid, rnum),
-	FOREIGN KEY (mid) REFERENCES Match(mid)
-		ON DELETE CASCADE,
-	FOREIGN KEY (f1_id) REFERENCES Fighter(fid),
-	FOREIGN KEY (f2_id) REFERENCES Fighter(fid)
-)
+	eid		INTEGER NOT NULL,
+	mid		INTEGER NOT NULL,
+	round_num	INTEGER NOT NULL,
+	f1_knockdowns	INTEGER,
+	f1_strikes	INTEGER,
+	f1_takedowns	INTEGER,
+	f1_sub_att	INTEGER,
+	f2_knockdowns	INTEGER,
+	f2_strikes	INTEGER,
+	f2_takedowns	INTEGER,
+	f2_sub_att	INTEGER,
+	PRIMARY KEY (eid, mid, round_num),
+	FOREIGN KEY (mid, eid) REFERENCES Match(mid, eid)
+		ON DELETE CASCADE
+);
