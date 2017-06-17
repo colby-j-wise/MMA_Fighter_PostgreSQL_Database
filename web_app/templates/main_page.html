@@ -1,0 +1,19 @@
+<form method="post">
+
+  <label>
+    <div>Fighter Name</div>
+    <input type="text" name="fighter_name" value="{{ fighter_name }}">
+  </label>
+
+  <label>
+    <div>Parent</div>
+    <select name="activity">
+      {% for fighter in fighters %}
+          <option value="{{ fighter }}">{{ fighter }}</option>
+      {% endfor %}
+    </select>
+  </label>
+
+  <input type="submit">
+
+</form>
