@@ -61,7 +61,7 @@ def before_request():
 @app.teardown_request
 def teardown_request(exception):
 	"""
-	Ensure database connection closed at end of web request
+	Ensure database connection closed at end of web request so not to overload server
 	"""
 	try:
 		g.conn.close()

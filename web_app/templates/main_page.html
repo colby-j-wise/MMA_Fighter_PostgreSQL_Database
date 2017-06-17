@@ -1,19 +1,40 @@
-<form method="post">
+<html>
+  <style>
+    body{ 
+      font-size: 15pt;
+      font-family: arial;
+    }
+  </style>
+<body>
 
-  <label>
-    <div>Fighter Name</div>
-    <input type="text" name="fighter_name" value="{{ fighter_name }}">
-  </label>
 
-  <label>
-    <div>Parent</div>
-    <select name="activity">
-      {% for fighter in fighters %}
-          <option value="{{ fighter }}">{{ fighter }}</option>
-      {% endfor %}
-    </select>
-  </label>
 
-  <input type="submit">
+  <form method="post">
+    <label>
+    <h1>Some fighters</h1>
+    <div>{{data}}</div>
 
-</form>
+      <div>
+        {% for n in data %}
+      <div>{{n}}</div>
+        {% endfor %}
+      </div>
+
+    </label>
+
+    <label>
+      <div>Fighter Name</div>
+      <select name="fighter">
+        {% for fighter in fighters %}
+            <option value="{{ fighter }}">{{ fighter }}</option>
+        {% endfor %}
+      </select>
+    </label>
+
+    <input type="submit">
+  </form>
+
+</body>
+
+
+</html>
