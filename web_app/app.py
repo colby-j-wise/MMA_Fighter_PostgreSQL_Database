@@ -70,6 +70,7 @@ def teardown_request(exception):
 
 
 @app.route('/')
+@app.route('/index')
 def index():
 	"""
 	Main page of web app. Displays boxers in drop down format. 
@@ -81,7 +82,7 @@ def index():
 
 	fighting_words = {'name': 'An attack is the best form of defense'}
 
-	# Simple query to return table 'fighter' from db to ensure app working
+	# SQL query to get fighter id and name from table 'fighter' to populate drop down list
 	result = g.conn.execute("SELECT fname, lname, fid FROM fighter GROUP BY fid, fname, lname ORDER BY fname, lname LIMIT 50")
 	fighters =[]
 
@@ -93,6 +94,28 @@ def index():
 							title='All the Fighters in the World',
 							user=fighting_words['name'],
 							fighter_list=fighters)
+
+
+@app.route('/results', methods=['GET', 'POST'])
+def results():
+	# DEBUG: this is debugging code to see what request looks like
+	print(request.args)
+
+	# Returns fighter selection from drop down menu as **string**
+	select = request.form.get('selected_fighter')
+
+	# str indexing to remove fname, lname from select and get only fid used in below SQL query
+	fighter_fid = (int(''.join(list(filter(str.isdigit, select)))))
+	
+	# Get statistics for selected fighter by FID	
+	cursor = g.conn.execute("SELECT fid, fname, lname, height, sex FROM fighter WHERE fid = {}".format(fighter_fid))
+	stats = [dict(fid=row['fid'], 
+				fname=row['fname'], 
+				lname=row['lname'], 
+				height=row['height'], 
+				sex=row['sex']) for row in cursor.fetchall()]
+	cursor.close()
+	return render_template('results.html', output=stats)
 
 
 if __name__== "__main__":

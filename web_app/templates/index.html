@@ -7,27 +7,24 @@
 
 
       <h2>Ready Fight!</h2>
-        <h3><table><form action="" method="POST">
+        <h3><form name="option" action="{{ url_for('results') }}" method="POST">
           <td>
           <label>Select Fighter 1:</label>
-            <select name="option" width="300px">
+            <select name="selected_fighter" width="280px">
             {% for x in fighter_list %}
             <option value="{{ x }}"{% if loop.first %} SELECTED{% endif %}>{{ x }}</option>
             {% endfor %}
             </select>
-        <br>
-        <br>
-        <br>
-        <br>
-           <label>Select Fighter 2:</label>
-            <select name="option" width="300px">
-            {% for x in fighter_list %}
-            <option value="{{ x }}"{% if loop.first %} SELECTED{% endif %}>{{ x }}</option>
-            {% endfor %}
-            </select>
-          </td>
+              <button type="submit">View Stats</button>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <h2>{{ output }}</h2>
 
-        </form></table></h3>
+
+        </form></h3>
 
 
   </body>

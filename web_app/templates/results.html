@@ -1,0 +1,12 @@
+{% extends "index.html" %}
+{% block content %}
+<h2>results</h2>
+
+{% for s in stats %}
+    <strong>fid:</strong> {{ s.fid }}
+    <br><strong>fname:</strong> {{ s.fname }}
+    <strong>lname:</strong> {{ s.lname }}
+    <strong>dob:</strong> {{ s.dob }}
+    <strong>sex:</strong> {{ s.sex }}  
+{% endfor %}
+{% endblock %}}
