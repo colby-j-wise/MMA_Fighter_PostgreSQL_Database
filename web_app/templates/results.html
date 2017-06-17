@@ -4,9 +4,17 @@
 
 {% for s in stats %}
     <strong>fid:</strong> {{ s.fid }}
-    <br><strong>fname:</strong> {{ s.fname }}
+    <strong>fname:</strong> {{ s.fname }}
     <strong>lname:</strong> {{ s.lname }}
     <strong>dob:</strong> {{ s.dob }}
-    <strong>sex:</strong> {{ s.sex }}  
+    <strong>sex:</strong> {{ s.sex }}
 {% endfor %}
+<table>
+{% for key, value in stats.iteritems() %}
+   <tr>
+        <th> {{ key }} </th>
+        <td> {{ value }} </td>
+   </tr>
+{% endfor %}
+</table>
 {% endblock %}}
