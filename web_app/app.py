@@ -101,7 +101,7 @@ def results():
 	# DEBUG: this is debugging code to see what request looks like
 	print(request.args)
 
-	# Returns fighter selection from drop down menu as **string***
+	# Returns fighter selection from drop down menu as **string**
 	select = request.form.get('selected_fighter')
 
 	# str indexing to remove fname, lname from select and get only fid used in below SQL query
