@@ -1,28 +1,150 @@
 <html>
-  <head>
-    <title>{{ title }}</title>
-  </head>
-  <body>
-    <h1>{{ user }}!</h1>
+<head>
+	<title>{{ title }}</title>
+</head>
+<body>
+<form name="option" action="{{ url_for('results') }}" method="POST">
+<table style="text-align: left; width:100%;" border="0" cellpadding="2" cellspacing="2">
+<tbody>
+<tr>
 
+<td style="vertical-align: top; width: 30%;">
+<table style="text-align: left; width: 100%;"border="1" cellpadding="2" cellspacing="2">
+{%if f1_stats %}
+<tbody>
+<tr align="center">
 
-      <h2>Ready Fight!</h2>
-        <h3><form name="option" action="{{ url_for('results') }}" method="POST">
-          <td>
-          <label>Select Fighter 1:</label>
-            <select name="selected_fighter" width="280px">
-            {% for x in fighter_list %}
-            <option value="{{ x }}"{% if loop.first %} SELECTED{% endif %}>{{ x }}</option>
-            {% endfor %}
-            </select>
-              <button type="submit">View Stats</button>
-            <br>
-            <br>
-            <h2>{{ output }}</h2>
+	<td colspan="2" rowspan="1" style="vertical-align: middle; text-align: center;">
+		{%if fname1%}{{fname1}}{%endif%}
+		{%if nname1%} "{{nname1}}" {%endif%}
+		{%if lname1%}{{lname1}}{%endif%}
+	<br></td>
+</tr>
+<tr>
+	<td style="vertical-align: top; width: 60%;">Age: {%if age1%}{{age1}}{%else%}?{%endif%}<br></td>
+	<td style="vertical-align: top;">Weight: {%if wt1%}{{wt1}}{%else%}?{%endif%}<br></td>
+</tr>
+<tr>
+	<td style="vertical-align: top;">Nationality: {%if nation1%}{{nation1}}{%else%}?{%endif%}<br></td>
+	<td style="vertical-align: top;">Height: {%if ht1%}{{ht1}}{%else%}?{%endif%}<br></td>
+</tr>
+<tr>
+	<td style="vertical-align: top;">Record: 
+		{%if wins1%}{{wins1}}{%else%}0{%endif%} - 
+		{%if losses1%}{{losses1}}{%else%}0{%endif%}
+		{%if draws1%} - {{draws1}}{%endif%}
+		{%if nc1%}, {{nc1}} no contest{%endif%}<br></td>
+	<td style="vertical-align: top;">Arm Reach: {%if areach1%}{{areach1}}{%else%}?{%endif%}<br></td>
+</tr>
+<tr>
+	<td style="vertical-align: top;"><br></td>
+	<td style="vertical-align: top;">Leg Reach: {%if lreach1%}{{lreach1}}{%else%}?{%endif%}<br></td>
+</tr>
+</tbody>
+{%endif%}
+{%if f1_events%}
+	<table style="text-align: left; width: 100%;"border="1" cellpadding="2" cellspacing="2">
+	<tbody>
+	{%for x in f1_events_list%}
+		<tr><td style="vertical-align: top;">{{x}}<br></td></tr>
+	{%endfor%}
+	</tbody>
+{%endif%}
+</table>
+<br>
+</td>
 
+<td style="vertical-align:top; text-align:center; width:15%;">Fighter 1<br>
+	<select name="select_fighter1" id="select_fighter1"">
+	{% for x in fighter_list %}
+		<option value="{{ x }}"
+			{%if prev_f1%}
+				{%if prev_f1 == x%}
+					SELECTED
+				{%endif%}
+			{%elif loop.first %}
+				SELECTED
+			{% endif %}>
+			{{x}}
+		</option>
+	{% endfor %}
+	</select>
+<br>
+Stats <input {%if f1_stats%}checked="checked"{%endif%} name="stats1" type="checkbox">
+UFC Events <input {%if f1_events%}checked="checked"{%endif%}name="events1" type="checkbox">
+<br>
+</td>
+<td style="vertical-align: top; text-align: center; width:10%"><input id="s1"
+name="submit" type="submit" value="GET RESULTS"><br>
+</td>
+<td style="vertical-align:top; text-align:center;width=15%">Fighter 2<br>
+	<select name="select_fighter2" id="select_fighter2">
+	{% for x in fighter_list %}
+		<option value="{{ x }}"
+			{%if prev_f2%}
+				{%if prev_f2 == x%}
+					SELECTED
+				{%endif%}
+			{%elif loop.first %}
+				SELECTED
+			{% endif %}>
+			{{x}}
+		</option>
+	{% endfor %}
+	</select>
+<br>
+Stats <input {%if f2_stats%}checked="checked"{%endif%} name="stats2" type="checkbox">
+UFC Events <input {%if f2_events%}checked="checked"{%endif%}name="events2" type="checkbox">
+<br></td>
 
-        </form></h3>
+<td style="vertical-align: top; width: 30%;">
+<table style="text-align: left; width: 100%;"border="1" cellpadding="2" cellspacing="2">
+{%if f2_stats%}
+<tbody>
+<tr align="center">
+	<td colspan="2" rowspan="1" style="vertical-align: middle; text-align: center;">
+		{%if fname2%}{{fname2}}{%endif%}
+		{%if nname2%} "{{nname2}}" {%endif%}
+		{%if lname2%}{{lname2}}{%endif%}
+	<br></td>
+</tr>
+<tr>
+	<td style="vertical-align: top; width: 60%;">Age: {%if age2%}{{age2}}{%else%}?{%endif%}<br></td>
+	<td style="vertical-align: top;">Weight: {%if wt2%}{{wt2}}{%else%}?{%endif%}<br></td>
+</tr>
+<tr>
+	<td style="vertical-align: top;">Nationality: {%if nation2%}{{nation2}}{%else%}?{%endif%}<br></td>
+	<td style="vertical-align: top;">Height: {%if ht2%}{{ht2}}{%else%}?{%endif%}<br></td>
+</tr>
+<tr>
+	<td style="vertical-align: top;">Record: 
+		{%if wins2%}{{wins2}}{%else%}0{%endif%} - 
+		{%if losses2%}{{losses2}}{%else%}0{%endif%}
+		{%if draws2%} - {{draws2}}{%endif%}
+		{%if nc2%}, {{nc2}} no contest{%endif%}<br></td>
+	<td style="vertical-align: top;">Arm Reach: {%if areach2%}{{areach2}}{%else%}?{%endif%}<br></td>
+</tr>
+<tr>
+	<td style="vertical-align: top;"><br></td>
+	<td style="vertical-align: top;">Leg Reach: {%if lreach2%}{{lreach2}}{%else%}?{%endif%}<br></td>
+</tr>
+</tbody>
+{%endif%}
+{%if f2_events%}
+	<table style="text-align: left; width: 100%;"border="1" cellpadding="2" cellspacing="2">
+	<tbody>
+	{%for x in f2_events_list%}
+		<tr><td style="vertical-align: top;">{{x}}<br></td></tr>
+	{%endfor%}
+	</tbody>
+{%endif%}
+</table>
+<br>
+</td>
 
-
-  </body>
+</tr>
+</tbody></table>
+<br>
+	</form>
+</body>
 </html>
