@@ -675,9 +675,8 @@ if __name__== "__main__":
 	Show the help text using:
 
 	python server.py --help
-
 	"""
-	
+
 	HOST, PORT = host, port
 	print "running on %s:%d" % (HOST, PORT)
 	app.run(host=HOST, port=PORT, debug=debug, threaded=threaded)
