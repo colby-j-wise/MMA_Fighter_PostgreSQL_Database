@@ -1,150 +1,534 @@
 <html>
 <head>
-	<title>{{ title }}</title>
+      <title>{{title}}</title>
 </head>
 <body>
-<form name="option" action="{{ url_for('results') }}" method="POST">
-<table style="text-align: left; width:100%;" border="0" cellpadding="2" cellspacing="2">
-<tbody>
-<tr>
 
-<td style="vertical-align: top; width: 30%;">
-<table style="text-align: left; width: 100%;"border="1" cellpadding="2" cellspacing="2">
+<form name="option" action="{{url_for('results')}}" method="POST">
+
+<table style="text-align:left; width:100%;" border="0" cellpadding="0" cellspacing="0">
+  <tbody>
+    <tr>
+      <td style="vertical-align:top; width:30%;">
+      <fieldset><legend>{%if fname1%}{{fname1}}{%endif%}{%if nname1%} "{{nname1}}"{%endif%}{%if lname1%} {{lname1}}{%endif%}</legend>
+      <table style="text-align: left; width: 100%;" border="1" cellpadding="2" cellspacing="2">
+{%if f1_stats or f1_ranks%}
+        <tbody>
+{%endif%}
 {%if f1_stats %}
-<tbody>
-<tr align="center">
+          <tr>
+            <td style="vertical-align: top; width: 60%;">Age: {%if age1%}{{age1}}{%else%}?{%endif%}<br>
+            </td>
+            <td style="vertical-align: top; width: 40%;">Weight: {%if wt1%}{{wt1}}{%else%}?{%endif%}<br>
+            </td>
+          </tr>
+          <tr>
+            <td style="vertical-align: top; width: 60%;">Nationality: {%if nation1%}{{nation1}}{%else%}?{%endif%}<br>
+            </td>
+            <td style="vertical-align: top; width: 40%;">Height: {%if ht1%}{{ht1}}{%else%}?{%endif%}<br>
+            </td>
+          </tr>
+          <tr>
+            <td style="vertical-align: top; width: 60%;">Record:
+                                                         {%if wins1%}{{wins1}}{%else%}0{%endif%} -
+                                                         {%if losses1%}{{losses1}}{%else%}0{%endif%}
+                                                         {%if draws1%} - {{draws1}}{%endif%}
+                                                         {%if nc1%}, {{nc1}} no contest{%endif%}<br>
+            </td>
+            <td style="vertical-align: top; width: 40%;">Arm Reach: {%if areach1%}{{areach1}}{%else%}?{%endif%}<br>
+            </td>
+          </tr>
+          <tr>
+            <td style="vertical-align: top; width: 60%;"><br>
+            </td>
+            <td style="vertical-align: top; width: 40%;">Leg Reach: {%if lreach1%}{{lreach1}}{%else%}?{%endif%}<br>
+            </td>
+          </tr>
+{%endif%}
+{%if f1_ranks%}
+          {%for x in f1_rank_list%}
+          <tr>
+            <td colspan="2" rowspan="1" style="vertical-align: top; width: 100%;">{{x}}<br>
+            </td>
+          </tr>
+          {%endfor%}
+{%endif%}
+{%if f1_stats or f1_ranks%}
+        </tbody>
+{%endif%}
+      </table>
+      </fieldset>
+      </td>
+      <td style="vertical-align: top; width: 15%;">
+      <fieldset><legend>Fighter 1</legend>
+      <select name="select_fighter1" id="select_fighter1"">
+          {% for x in fighter_list %}
+                  <option value="{{ x }}"
+                          {%if prev_f1%}
+                                  {%if prev_f1 == x%}
+                                          SELECTED
+                                  {%endif%}
+                          {%elif loop.first %}
+                                  SELECTED
+                          {% endif %}>
+                          {{x}}
+                  </option>
+          {% endfor %}
+      </select>
+      <br>
+      <input {%if f1_stats%}checked="checked"{%endif%} name="stats1" type="checkbox"> Fighter Information<br>
+      <input {%if f1_ranks%}checked="checked"{%endif%}name="ranks1" type="checkbox"> Rankings<br>
+      <input {%if f1_events%}checked="checked"{%endif%}name="events1" type="checkbox">
+                                                    UFC Match Data{%if f1_events%}:{%endif%}<br>
+      {%if f1_events%}
+          <select name="select_fighter1" id="select_fighter1">
+              {% for x in f1_events_list %}
+                  <option value="{{ x }}"
+                      {%if prev_f1_event%}
+                          {%if prev_f1_event == x%}
+                              SELECTED
+                          {%endif%}
+                      {%elif loop.first %}
+                          SELECTED
+                      {% endif %}>
+                      {{x}}
+                  </option>
+              {% endfor %}
+          </select>
+      {%endif%}
+      <br>
+      </fieldset>
+      </td>
+      <td style="vertical-align: top; width: 10%; height:10%; text-align: center;">
+<input style="width:100%;height:50%" id="s1" name="submit" type="submit" value="GET INFO"><br>
+<input style="width:100%;height:50%" id="s2" name="submit2" type="submit" value="GET ODDS"><br>
+      </td>
+      <td style="vertical-align: top; width: 15%;">
+      <fieldset><legend>Fighter 2</legend>
+      <select name="select_fighter2" id="select_fighter2">
+          {% for x in fighter_list %}
+              <option value="{{ x }}"
+                  {%if prev_f2%}
+                      {%if prev_f2 == x%}
+                          SELECTED
+                      {%endif%}
+                  {%elif loop.first %}
+                      SELECTED
+                  {% endif %}>
+                  {{x}}
+              </option>
+          {% endfor %}
+      </select>
+      <br>
+      <input {%if f2_stats%}checked="checked"{%endif%}name="stats2" type="checkbox"> Fighter Information<br>
+      <input {%if f2_ranks%}checked="checked"{%endif%}name="ranks2" type="checkbox"> Rankings<br>
+      <input {%if f2_events%}checked="checked"{%endif%}name="events2" type="checkbox">
+                                                 UFC Match Data{%if f2_events%}:{%endif%}<br>
 
-	<td colspan="2" rowspan="1" style="vertical-align: middle; text-align: center;">
-		{%if fname1%}{{fname1}}{%endif%}
-		{%if nname1%} "{{nname1}}" {%endif%}
-		{%if lname1%}{{lname1}}{%endif%}
-	<br></td>
-</tr>
-<tr>
-	<td style="vertical-align: top; width: 60%;">Age: {%if age1%}{{age1}}{%else%}?{%endif%}<br></td>
-	<td style="vertical-align: top;">Weight: {%if wt1%}{{wt1}}{%else%}?{%endif%}<br></td>
-</tr>
-<tr>
-	<td style="vertical-align: top;">Nationality: {%if nation1%}{{nation1}}{%else%}?{%endif%}<br></td>
-	<td style="vertical-align: top;">Height: {%if ht1%}{{ht1}}{%else%}?{%endif%}<br></td>
-</tr>
-<tr>
-	<td style="vertical-align: top;">Record: 
-		{%if wins1%}{{wins1}}{%else%}0{%endif%} - 
-		{%if losses1%}{{losses1}}{%else%}0{%endif%}
-		{%if draws1%} - {{draws1}}{%endif%}
-		{%if nc1%}, {{nc1}} no contest{%endif%}<br></td>
-	<td style="vertical-align: top;">Arm Reach: {%if areach1%}{{areach1}}{%else%}?{%endif%}<br></td>
-</tr>
-<tr>
-	<td style="vertical-align: top;"><br></td>
-	<td style="vertical-align: top;">Leg Reach: {%if lreach1%}{{lreach1}}{%else%}?{%endif%}<br></td>
-</tr>
-</tbody>
+      {%if f2_events%}
+          <select name="select_fighter2" id="select_fighter2">
+              {% for x in f2_events_list %}
+                  <option value="{{ x }}"
+                      {%if prev_f2_event%}
+                          {%if prev_f2_event == x%}
+                              SELECTED
+                          {%endif%}
+                      {%elif loop.first %}
+                          SELECTED
+                      {% endif %}>
+                      {{x}}
+                  </option>
+              {% endfor %}
+          </select>
+      {%endif%}
+      <br>
+      </fieldset>
+      </td>
+      <td style="vertical-align: top; width: 30%;">
+      <fieldset><legend>{%if fname2%}{{fname2}}{%endif%}{%if nname2%} "{{nname2}}"{%endif%}{%if lname2%} {{lname2}}{%endif%}</legend>
+      <table style="text-align: left; width: 100%;" border="1" cellpadding="2" cellspacing="2">
+{%if f2_stats or f2_ranks%}
+        <tbody>
 {%endif%}
-{%if f1_events%}
-	<table style="text-align: left; width: 100%;"border="1" cellpadding="2" cellspacing="2">
-	<tbody>
-	{%for x in f1_events_list%}
-		<tr><td style="vertical-align: top;">{{x}}<br></td></tr>
-	{%endfor%}
-	</tbody>
+{%if f2_stats %}
+          <tr>
+            <td style="vertical-align: top; width: 60%;">Age: {%if age2%}{{age2}}{%else%}?{%endif%}<br>
+            </td>
+            <td style="vertical-align: top; width: 40%;">Weight: {%if wt2%}{{wt2}}{%else%}?{%endif%}<br>
+            </td>
+          </tr>
+          <tr>
+            <td style="vertical-align: top; width: 60%;">Nationality: {%if nation2%}{{nation2}}{%else%}?{%endif%}<br>
+            </td>
+            <td style="vertical-align: top; width: 40%;">Height: {%if ht2%}{{ht2}}{%else%}?{%endif%}<br>
+            </td>
+          </tr>
+          <tr>
+            <td style="vertical-align: top; width: 60%;">Record:
+                                                         {%if wins2%}{{wins2}}{%else%}0{%endif%} -
+                                                         {%if losses2%}{{losses2}}{%else%}0{%endif%}
+                                                         {%if draws2%} - {{draws2}}{%endif%}
+                                                         {%if nc2%}, {{nc2}} no contest{%endif%}<br>
+            </td>
+            <td style="vertical-align: top; width: 40%;">Arm Reach: {%if areach2%}{{areach2}}{%else%}?{%endif%}<br>
+            </td>
+          </tr>
+          <tr>
+            <td style="vertical-align: top; width: 60%;"><br>
+            </td>
+            <td style="vertical-align: top; width: 40%;">Leg Reach: {%if lreach2%}{{lreach2}}{%else%}?{%endif%}<br>
+            </td>
+          </tr>
 {%endif%}
+{%if f2_ranks%}
+          {%for x in f2_rank_list%}
+          <tr>
+            <td colspan="2" rowspan="1" style="vertical-align: top; width: 100%;">{{x}}<br>
+            </td>
+          </tr>
+          {%endfor%}
+{%endif%}
+{%if f2_stats or f2_ranks%}
+        </tbody>
+{%endif%}
+      </table>
+      </fieldset>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;" rowspan="1" colspan="2">
+      <table style="text-align: left; width: 562px; height: 73px;" border="1" cellpadding="2" cellspacing="2">
+        <tbody>
+          <tr>
+            <td colspan="3" rowspan="1" style="vertical-align: top; width: 50%;">UFC FIGHT NIGHT 3<br>
+            </td>
+            <td colspan="3" rowspan="1" style="vertical-align: top;">Las Vegas, Nevada<br>
+            </td>
+          </tr>
+          <tr>
+            <td colspan="3" rowspan="1" style="vertical-align: top;">Opponent: James Earl Jones<br>
+            </td>
+            <td colspan="3" rowspan="1" style="vertical-align: top;">Result: Win by submission<br>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <table style="text-align: left; width: 558px; height: 172px;" border="1" cellpadding="2" cellspacing="2">
+        <tbody>
+          <tr>
+            <td style="width: 25%;"><br>
+            </td>
+            <td style="width: 15%; text-align: center;">Rd 1<br>
+            </td>
+            <td style="width: 15%; text-align: center;">Rd 2<br>
+            </td>
+            <td style="width: 15%; text-align: center;">Rd 3<br>
+            </td>
+            <td style="width: 15%; text-align: center;">Rd 4<br>
+            </td>
+            <td style="width: 15%; text-align: center;">Rd 5<br>
+            </td>
+          </tr>
+          <tr>
+            <td style="text-align: right;">Takedowns<br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+          </tr>
+          <tr>
+            <td style="text-align: right;">Knockdowns<br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+          </tr>
+          <tr>
+            <td style="text-align: right;">Strikes<br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+          </tr>
+          <tr>
+            <td style="text-align: right;">Submission Attempts<br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+          </tr>
+          <tr>
+            <td style="text-align: right;">Taken Down<br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+          </tr>
+          <tr>
+            <td style="text-align: right;">Knocked Down<br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+          </tr>
+          <tr>
+            <td style="text-align: right;">Strikes Absorbed<br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+          </tr>
+          <tr>
+            <td style="text-align: right;">Submission Defenses<br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+          </tr>
+          <tr>
+            <td style="text-align: right;">Time<br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+            <td style="vertical-align: top;"><br>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      </td>
+      <td style="vertical-align: top;"><br>
+      </td>
+      <td colspan="2" rowspan="1" style="vertical-align: top;">
+      <table style="text-align: left; width: 553px; height: 74px;" border="1" cellpadding="2" cellspacing="2">
+        <tbody>
+          <tr>
+            <td colspan="3" rowspan="1" style="vertical-align: top; width: 50%;">UFC 103<br>
+            </td>
+            <td colspan="3" rowspan="1" style="vertical-align: top; width: 50%;">Brazil<br>
+            </td>
+          </tr>
+          <tr>
+            <td colspan="3" rowspan="1" style="vertical-align: top; width: 50%;">Opponent: Lee Harvey Oswald<br>
+            </td>
+            <td colspan="3" rowspan="1" style="vertical-align: top; width: 50%;">Result: Loss by merciless beating<br>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <table style="text-align: left; width: 550px; height: 172px;" border="1" cellpadding="2" cellspacing="2">
+        <tbody>
+          <tr>
+            <td style="vertical-align: top; width: 25%;"><br>
+            </td>
+            <td style="width: 15%; text-align: center;">Rd 1<br>
+            </td>
+            <td style="width: 15%; text-align: center;">Rd 2<br>
+            </td>
+            <td style="width: 15%; text-align: center;">Rd 3<br>
+            </td>
+            <td style="width: 15%; text-align: center;">Rd 4<br>
+            </td>
+            <td style="width: 15%; text-align: center;">Rd 5<br>
+            </td>
+          </tr>
+          <tr>
+            <td style="vertical-align: top; text-align: right;">Takedowns<br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+          </tr>
+          <tr>
+            <td style="vertical-align: top; text-align: right;">Knockdowns<br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+          </tr>
+          <tr>
+            <td style="vertical-align: top; text-align: right;">Strikes<br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+          </tr>
+          <tr>
+            <td style="vertical-align: top; text-align: right;">Submission Attempts<br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+          </tr>
+          <tr>
+            <td style="vertical-align: top; text-align: right;">Taken Down<br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+          </tr>
+          <tr>
+            <td style="vertical-align: top; text-align: right;">Knocked Down<br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+          </tr>
+          <tr>
+            <td style="vertical-align: top; text-align: right;">Strikes Absorbed<br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+          </tr>
+          <tr>
+            <td style="vertical-align: top; text-align: right;">Submission Defenses<br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+          </tr>
+          <tr>
+            <td style="vertical-align: top; text-align: right;">Time<br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+            <td style="text-align: center;"><br>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      </td>
+    </tr>
+  </tbody>
 </table>
 <br>
-</td>
 
-<td style="vertical-align:top; text-align:center; width:15%;">Fighter 1<br>
-	<select name="select_fighter1" id="select_fighter1"">
-	{% for x in fighter_list %}
-		<option value="{{ x }}"
-			{%if prev_f1%}
-				{%if prev_f1 == x%}
-					SELECTED
-				{%endif%}
-			{%elif loop.first %}
-				SELECTED
-			{% endif %}>
-			{{x}}
-		</option>
-	{% endfor %}
-	</select>
 <br>
-Stats <input {%if f1_stats%}checked="checked"{%endif%} name="stats1" type="checkbox">
-UFC Events <input {%if f1_events%}checked="checked"{%endif%}name="events1" type="checkbox">
-<br>
-</td>
-<td style="vertical-align: top; text-align: center; width:10%"><input id="s1"
-name="submit" type="submit" value="GET RESULTS"><br>
-</td>
-<td style="vertical-align:top; text-align:center;width=15%">Fighter 2<br>
-	<select name="select_fighter2" id="select_fighter2">
-	{% for x in fighter_list %}
-		<option value="{{ x }}"
-			{%if prev_f2%}
-				{%if prev_f2 == x%}
-					SELECTED
-				{%endif%}
-			{%elif loop.first %}
-				SELECTED
-			{% endif %}>
-			{{x}}
-		</option>
-	{% endfor %}
-	</select>
-<br>
-Stats <input {%if f2_stats%}checked="checked"{%endif%} name="stats2" type="checkbox">
-UFC Events <input {%if f2_events%}checked="checked"{%endif%}name="events2" type="checkbox">
-<br></td>
 
-<td style="vertical-align: top; width: 30%;">
-<table style="text-align: left; width: 100%;"border="1" cellpadding="2" cellspacing="2">
-{%if f2_stats%}
-<tbody>
-<tr align="center">
-	<td colspan="2" rowspan="1" style="vertical-align: middle; text-align: center;">
-		{%if fname2%}{{fname2}}{%endif%}
-		{%if nname2%} "{{nname2}}" {%endif%}
-		{%if lname2%}{{lname2}}{%endif%}
-	<br></td>
-</tr>
-<tr>
-	<td style="vertical-align: top; width: 60%;">Age: {%if age2%}{{age2}}{%else%}?{%endif%}<br></td>
-	<td style="vertical-align: top;">Weight: {%if wt2%}{{wt2}}{%else%}?{%endif%}<br></td>
-</tr>
-<tr>
-	<td style="vertical-align: top;">Nationality: {%if nation2%}{{nation2}}{%else%}?{%endif%}<br></td>
-	<td style="vertical-align: top;">Height: {%if ht2%}{{ht2}}{%else%}?{%endif%}<br></td>
-</tr>
-<tr>
-	<td style="vertical-align: top;">Record: 
-		{%if wins2%}{{wins2}}{%else%}0{%endif%} - 
-		{%if losses2%}{{losses2}}{%else%}0{%endif%}
-		{%if draws2%} - {{draws2}}{%endif%}
-		{%if nc2%}, {{nc2}} no contest{%endif%}<br></td>
-	<td style="vertical-align: top;">Arm Reach: {%if areach2%}{{areach2}}{%else%}?{%endif%}<br></td>
-</tr>
-<tr>
-	<td style="vertical-align: top;"><br></td>
-	<td style="vertical-align: top;">Leg Reach: {%if lreach2%}{{lreach2}}{%else%}?{%endif%}<br></td>
-</tr>
-</tbody>
-{%endif%}
-{%if f2_events%}
-	<table style="text-align: left; width: 100%;"border="1" cellpadding="2" cellspacing="2">
-	<tbody>
-	{%for x in f2_events_list%}
-		<tr><td style="vertical-align: top;">{{x}}<br></td></tr>
-	{%endfor%}
-	</tbody>
-{%endif%}
-</table>
-<br>
-</td>
-
-</tr>
-</tbody></table>
-<br>
-	</form>
+</form>
 </body>
 </html>

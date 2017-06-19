@@ -71,11 +71,6 @@ def teardown_request(exception):
 # map displayed fighter numbers to fids, careful not to expose fids to public (otherwise haxxers can break into the mainframe)
 fid_dict = dict()
 
-show_f1_stats = False
-show_f2_stats = False
-show_f1_events = False
-show_f2_events = False
-
 default_fighters = []
 
 @app.route('/')
@@ -122,6 +117,17 @@ def results():
 	show_f2_stats = False
 	show_f1_events = False
 	show_f2_events = False
+	show_f1_ranks = False
+	show_f2_ranks = False
+
+# Get match data
+# SELECT e.eid, e.name, m.mid, f.lname, f2.lname, m.f1_result
+# FROM match m, fighter f, event e, (SELECT m.mid, f.fid, f.lname
+#				   FROM match m, fighter f
+#				   WHERE m.fid2 = f.fid)f2
+# WHERE m.eid = e.eid AND f.fid = m.fid1 AND f2.fid = m.fid2 AND f2.mid = m.mid
+# GROUP BY e.eid, e.name, m.mid, f.lname, f2.lname, m.f1_result
+# ORDER BY e.eid, m.mid
 
 	query = None
 	if request.form.get('stats1'):
@@ -147,7 +153,6 @@ def results():
 	if selection:
 		# Look up the actual fid in the fid dictionary fid_dict
 		fighter1['fid'] = fid_dict[re.split('. |, |\s |\n |\r |\t', str(selection))[0]]
-		print("FIGHTER1.fid = %d" % fighter1['fid'])
 #	else BAD REQUEST
 
 	selection = request.form.get('select_fighter2')
@@ -172,6 +177,15 @@ def results():
 	if selection:
 		show_f2_events = True
 
+	selection = request.form.get('ranks1')
+	if selection:
+		print("RANKS1")
+		show_f1_ranks = True
+	selection = request.form.get('ranks2')
+	if selection:
+		print("RANKS2")
+		show_f2_ranks = True
+
 	query = g.conn.execute("SELECT * FROM fighter WHERE fid = %d" % fighter1['fid'])
 
 	fighter1.update(fill_fighter(query))
@@ -181,12 +195,16 @@ def results():
 
 	event_list1 = []
 	event_list2 = []
+	rank_list1 = []
+	rank_list2 = []
 	if show_f1_events:
 		query = g.conn.execute("SELECT e.name " \
 					"FROM event e, match m, fighter f " \
 					"WHERE e.eid = m.eid AND " \
 					"(f.fid = m.fid1 OR f.fid = m.fid2) " \
-					"AND f.fid = %d" % fighter1['fid'])
+					"AND f.fid = %d" \
+					"GROUP BY e.eid, e.name " \
+					"ORDER BY e.eid, e.name" % fighter1['fid'])
 		for row in query:
 			event_list1.append(row['name'])
 
@@ -195,9 +213,41 @@ def results():
 					"FROM event e, match m, fighter f " \
 					"WHERE e.eid = m.eid AND " \
 					"(f.fid = m.fid1 OR f.fid = m.fid2) " \
-					"AND f.fid = %d" % fighter2['fid'])
+					"AND f.fid = %d " \
+					"GROUP BY e.eid, e.name " \
+					"ORDER BY e.eid, e.name" % fighter2['fid'])
 		for row in query:
 			event_list2.append(row['name'])
+
+# get weightclass and rank (in that weight class) for a fighter
+# SELECT w.name, w.rank
+# FROM ranking r, fighter f, weightclass w
+# WHERE f.fid = r.fid AND r.wid = w.wid AND f.fid = FIGHTER'S FID
+	if show_f1_ranks:
+		query = g.conn.execute("SELECT w.name, r.rank " \
+					"FROM ranking r, fighter f, weightclass w " \
+					"WHERE f.fid = r.fid AND r.wid = w.wid " \
+					"AND f.fid = %d" % fighter1['fid'])
+		print("F1 RANKS:")
+		for row in query:
+			print(row)
+			if row['rank'] != None:
+				rank_list1.append("#%d %s" % (row['rank'], row['name']))
+			else:
+				rank_list1.append(row['name'])
+
+	if show_f2_ranks:
+		query = g.conn.execute("SELECT w.name, r.rank " \
+					"FROM ranking r, fighter f, weightclass w " \
+					"WHERE f.fid = r.fid AND r.wid = w.wid " \
+					"AND f.fid = %d" % fighter2['fid'])
+		print("F2 RANKS:")
+		for row in query:
+			print(row)
+			if row['rank'] != None:
+				rank_list2.append("#%d %s" % (row['rank'], row['name']))
+			else:
+				rank_list2.append(row['name'])
 
 	tmpp = None
 	query.close()
@@ -211,6 +261,10 @@ def results():
 				f2_events=show_f2_events,
 				f1_events_list=event_list1,
 				f2_events_list=event_list2,
+				f1_ranks=show_f1_ranks,
+				f2_ranks=show_f2_ranks,
+				f1_rank_list=rank_list1,
+				f2_rank_list=rank_list2,
 				fname1=fighter1['fname'],
 				age1=fighter1['age'],
 				nname1=fighter1['nickname'],
