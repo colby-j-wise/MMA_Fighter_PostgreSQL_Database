@@ -80,7 +80,7 @@
           {% endfor %}
       </select>
       <br>
-      <input {%if f1_stats%}checked="checked"{%endif%} name="stats1" type="checkbox"> Fighter Information<br>
+      <input {%if f1_stats%}checked="checked"{%endif%} name="stats1" type="checkbox"><small> Fighter Information<br>
       <input {%if f1_ranks%}checked="checked"{%endif%}name="ranks1" type="checkbox"> Rankings<br>
       <input {%if f1_events%}checked="checked"{%endif%}name="events1" type="checkbox">
                                                     UFC Match Data{%if f1_events%}:{%endif%}
@@ -104,9 +104,9 @@
       <br>
       </fieldset>
       </td>
-      <td style="vertical-align: top; width: 10%; height:10%; text-align: center;">
-<input style="width:100%;height:50%" id="s1" name="submit" type="submit" value="GET INFO"><br>
-<input style="width:100%;height:50%" id="s2" name="submit2" type="submit" value="GET ODDS"><br>
+      <td style="vertical-align: top; width: 10%; height:10%; text-align: center;"><br>
+<input style="width:100%;height:30%" id="s1" name="submit" type="submit" value="UPDATE"><br><br>
+<input style="width:100%;height:30%" id="s2" name="submit2" type="submit" value="ODDS"><br>
       </td>
       <td style="vertical-align: top; width: 15%;">
       <fieldset><legend>Fighter 2</legend>
@@ -125,7 +125,7 @@
           {% endfor %}
       </select>
       <br>
-      <input {%if f2_stats%}checked="checked"{%endif%}name="stats2" type="checkbox"> Fighter Information<br>
+      <input {%if f2_stats%}checked="checked"{%endif%}name="stats2" type="checkbox"><small> Fighter Information<br>
       <input {%if f2_ranks%}checked="checked"{%endif%}name="ranks2" type="checkbox"> Rankings<br>
       <input {%if f2_events%}checked="checked"{%endif%}name="events2" type="checkbox">
                                                  UFC Match Data{%if f2_events%}:{%endif%}
@@ -205,339 +205,210 @@
       </td>
     </tr>
     <tr>
-      <td style="vertical-align: top;" rowspan="1" colspan="2">
-      <table style="text-align: left; width: 100%;" border="1" cellpadding="2" cellspacing="2">
+      <td style="vertical-align: top;" rowspan="1" colspan="2"><small>
+      <table style="text-align: left;" border="1" cellpadding="0" cellspacing="0">
 {%if f1_match%}
         <tbody>
           <tr>
-            <td colspan="3" rowspan="1" style="vertical-align: top; width: 50%;">{{f1_event_name}}<br>
-<!--            <td colspan="3" rowspan="1" style="vertical-align: top; width: 50%;">UFC FIGHT NIGHT 3<br> -->
+            <td colspan="3" rowspan="1" style="vertical-align: top;"><small>{{f1_event_name}}<br>
             </td>
-            <td colspan="3" rowspan="1" style="vertical-align: top;">{{f1_location}}<br>
-<!--            <td colspan="3" rowspan="1" style="vertical-align: top;">Las Vegas, Nevada<br> -->
+            <td colspan="3" rowspan="1" style="vertical-align: top;"><small>{{f1_location}}<br>
             </td>
           </tr>
           <tr>
-            <td colspan="3" rowspan="1" style="vertical-align: top;">Opponent: {{f1_opponent}}<br>
-<!--            <td colspan="3" rowspan="1" style="vertical-align: top;">Opponent: James Earl Jones<br> -->
+            <td colspan="3" rowspan="1" style="vertical-align: top;"><small>Opponent: {{f1_opponent}}<br>
             </td>
-            <td colspan="3" rowspan="1" style="vertical-align: top;">Result: {{f1_result}}<br>
-<!--            <td colspan="3" rowspan="1" style="vertical-align: top;">Result: Win by submission<br> -->
+            <td colspan="3" rowspan="1" style="vertical-align: top;"><small>Result: {{f1_result}}<br>
             </td>
           </tr>
         </tbody>
       </table>
-      <table style="text-align: left; width: 100%;" border="1" cellpadding="2" cellspacing="2">
+      <table style="text-align: left;" border="1" cellpadding="0" cellspacing="0">
         <tbody>
+
           <tr>
-            <td style="width: 25%;"><br>
+            <td><small><br>
             </td>
-            <td style="width: 15%; text-align: center;">Rd 1<br>
-            </td>
-            <td style="width: 15%; text-align: center;">Rd 2<br>
-            </td>
-            <td style="width: 15%; text-align: center;">Rd 3<br>
-            </td>
-            <td style="width: 15%; text-align: center;">Rd 4<br>
-            </td>
-            <td style="width: 15%; text-align: center;">Rd 5<br>
-            </td>
+            {%for x in f1_rd_nums%}
+                <td text-align: center;"><small>Rd {{x}}<br>
+                </td>
+            {%endfor%}
+
           </tr>
           <tr>
-            <td style="text-align: right;">Takedowns<br>
+            <td style="text-align: right;"><small>Takedowns<br>
             </td>
-            <td style="vertical-align: top;"><br>
-            </td>
-            <td style="vertical-align: top;"><br>
-            </td>
-            <td style="vertical-align: top;"><br>
-            </td>
-            <td style="vertical-align: top;"><br>
-            </td>
-            <td style="vertical-align: top;"><br>
-            </td>
+            {%for x in f1_f1_t%}
+                <td style="vertical-align: top;text-align:center;"><small>{{x}}<br>
+                </td>
+            {%endfor%}
+                
+
           </tr>
           <tr>
-            <td style="text-align: right;">Knockdowns<br>
+            <td style="text-align: right;"><small>Knockdowns<br>
             </td>
-            <td style="vertical-align: top;"><br>
-            </td>
-            <td style="vertical-align: top;"><br>
-            </td>
-            <td style="vertical-align: top;"><br>
-            </td>
-            <td style="vertical-align: top;"><br>
-            </td>
-            <td style="vertical-align: top;"><br>
-            </td>
+            {%for x in f1_f1_k%}
+                <td style="vertical-align: top;text-align:center"><small>{{x}}<br>
+                </td>
+            {%endfor%}
+
+
           </tr>
           <tr>
-            <td style="text-align: right;">Strikes<br>
+            <td style="text-align: right;"><small>Strikes<br>
             </td>
-            <td style="vertical-align: top;"><br>
-            </td>
-            <td style="vertical-align: top;"><br>
-            </td>
-            <td style="vertical-align: top;"><br>
-            </td>
-            <td style="vertical-align: top;"><br>
-            </td>
-            <td style="vertical-align: top;"><br>
-            </td>
+            {%for x in f1_f1_s%}
+                <td style="vertical-align: top;text-align:center;"><small>{{x}}<br>
+                </td>
+            {%endfor%}
+
           </tr>
           <tr>
-            <td style="text-align: right;">Submission Attempts<br>
+            <td style="text-align: right;"><small>Submission Attempts<br>
             </td>
-            <td style="vertical-align: top;"><br>
-            </td>
-            <td style="vertical-align: top;"><br>
-            </td>
-            <td style="vertical-align: top;"><br>
-            </td>
-            <td style="vertical-align: top;"><br>
-            </td>
-            <td style="vertical-align: top;"><br>
-            </td>
+            {%for x in f1_f1_sub%}
+                <td style="vertical-align: top;text-align:center;"><small>{{x}}<br>
+                </td>
+            {%endfor%}
+
+         </tr>
+          <tr>
+            <td style="text-align: right;"><small>Taken Down<br>
+            {%for x in f1_f2_t%}
+                <td style="vertical-align: top;text-align:center;"><small>{{x}}<br>
+                </td>
+            {%endfor%}
+
           </tr>
           <tr>
-            <td style="text-align: right;">Taken Down<br>
+            <td style="text-align: right;"><small>Knocked Down<br>
             </td>
-            <td style="vertical-align: top;"><br>
-            </td>
-            <td style="vertical-align: top;"><br>
-            </td>
-            <td style="vertical-align: top;"><br>
-            </td>
-            <td style="vertical-align: top;"><br>
-            </td>
-            <td style="vertical-align: top;"><br>
-            </td>
+            {%for x in f1_f2_k%}
+                <td style="vertical-align: top;text-align:center;"><small>{{x}}<br>
+                </td>
+            {%endfor%}
+
           </tr>
           <tr>
-            <td style="text-align: right;">Knocked Down<br>
+            <td style="text-align: right;"><small>Strikes Absorbed<br>
             </td>
-            <td style="vertical-align: top;"><br>
-            </td>
-            <td style="vertical-align: top;"><br>
-            </td>
-            <td style="vertical-align: top;"><br>
-            </td>
-            <td style="vertical-align: top;"><br>
-            </td>
-            <td style="vertical-align: top;"><br>
-            </td>
+            {%for x in f1_f2_s%}
+                <td style="vertical-align: top;text-align:center;"><small>{{x}}<br>
+                </td>
+            {%endfor%}
+
           </tr>
           <tr>
-            <td style="text-align: right;">Strikes Absorbed<br>
+            <td style="text-align: right;"><small>Submission Defenses<br>
             </td>
-            <td style="vertical-align: top;"><br>
-            </td>
-            <td style="vertical-align: top;"><br>
-            </td>
-            <td style="vertical-align: top;"><br>
-            </td>
-            <td style="vertical-align: top;"><br>
-            </td>
-            <td style="vertical-align: top;"><br>
-            </td>
-          </tr>
-          <tr>
-            <td style="text-align: right;">Submission Defenses<br>
-            </td>
-            <td style="vertical-align: top;"><br>
-            </td>
-            <td style="vertical-align: top;"><br>
-            </td>
-            <td style="vertical-align: top;"><br>
-            </td>
-            <td style="vertical-align: top;"><br>
-            </td>
-            <td style="vertical-align: top;"><br>
-            </td>
-          </tr>
-          <tr>
-            <td style="text-align: right;">Time<br>
-            </td>
-            <td style="vertical-align: top;"><br>
-            </td>
-            <td style="vertical-align: top;"><br>
-            </td>
-            <td style="vertical-align: top;"><br>
-            </td>
-            <td style="vertical-align: top;"><br>
-            </td>
-            <td style="vertical-align: top;"><br>
-            </td>
+            {%for x in f1_f2_sub%}
+                <td style="vertical-align: top;text-align:center;"><small>{{x}}<br>
+                </td>
+            {%endfor%}
+
           </tr>
         </tbody>
 {%endif%}
       </table>
       </td>
-      <td style="vertical-align: top;"><br>
+      <td style="vertical-align: top;;"><small><br>
       </td>
-      <td colspan="2" rowspan="1" style="vertical-align: top;">
-      <table style="text-align: left; width: 100%;" border="1" cellpadding="2" cellspacing="2">
+      <td colspan="2" rowspan="1" style="vertical-align: top;"><small>
+      <table style="text-align:left;" border="1" cellpadding="0" cellspacing="0">
 {%if f2_match%}
         <tbody>
           <tr>
-            <td colspan="3" rowspan="1" style="vertical-align: top; width: 50%;">{{f2_event_name}}<br>
-<!--            <td colspan="3" rowspan="1" style="vertical-align: top; width: 50%;">UFC 200<br> -->
+            <td colspan="3" rowspan="1" style="vertical-align: top;"><small>{{f2_event_name}}<br>
             </td>
-            <td colspan="3" rowspan="1" style="vertical-align: top; width: 50%;">{{f2_location}}<br>
-<!--            <td colspan="3" rowspan="1" style="vertical-align: top; width: 50%;">Brazil<br> -->
+            <td colspan="3" rowspan="1" style="vertical-align: top;"><small>{{f2_location}}<br>
             </td>
           </tr>
           <tr>
-            <td colspan="3" rowspan="1" style="vertical-align: top; width: 50%;">Opponent: {{f2_opponent}}<br>
-<!--            <td colspan="3" rowspan="1" style="vertical-align: top; width: 50%;">Opponent: Lee Harvey Oswald<br> -->
+            <td colspan="3" rowspan="1" style="vertical-align: top;"><small>Opponent: {{f2_opponent}}<br>
             </td>
-            <td colspan="3" rowspan="1" style="vertical-align: top; width: 50%;">Result: {{f2_result}}<br>
-<!--            <td colspan="3" rowspan="1" style="vertical-align: top; width: 50%;">Result: Loss by merciless beating<br> -->
+            <td colspan="3" rowspan="1" style="vertical-align: top;"><small>Result: {{f2_result}}<br>
             </td>
           </tr>
         </tbody>
       </table>
-      <table style="text-align: left; width: 100%;" border="1" cellpadding="2" cellspacing="2">
+      <table style="text-align: right;" border="1" cellpadding="0" cellspacing="0">
         <tbody>
           <tr>
-            <td style="vertical-align: top; width: 25%;"><br>
+            <td style="vertical-align: top;"><small><br>
             </td>
-            <td style="width: 15%; text-align: center;">Rd 1<br>
-            </td>
-            <td style="width: 15%; text-align: center;">Rd 2<br>
-            </td>
-            <td style="width: 15%; text-align: center;">Rd 3<br>
-            </td>
-            <td style="width: 15%; text-align: center;">Rd 4<br>
-            </td>
-            <td style="width: 15%; text-align: center;">Rd 5<br>
-            </td>
+            {%for x in f2_rd_nums%}
+                <td style="text-align: center;"><small>Rd {{x}}<br>
+                </td>
+            {%endfor%}
+
           </tr>
           <tr>
-            <td style="vertical-align: top; text-align: right;">Takedowns<br>
+            <td style="vertical-align: top; text-align: right;"><small>Takedowns<br>
             </td>
-            <td style="text-align: center;"><br>
-            </td>
-            <td style="text-align: center;"><br>
-            </td>
-            <td style="text-align: center;"><br>
-            </td>
-            <td style="text-align: center;"><br>
-            </td>
-            <td style="text-align: center;"><br>
-            </td>
+            {%for x in f2_f1_t%}
+                <td style="text-align: center;"><small>{{x}}<br>
+                </td>
+            {%endfor%}
+
           </tr>
           <tr>
-            <td style="vertical-align: top; text-align: right;">Knockdowns<br>
+            <td style="vertical-align: top; text-align: right;"><small>Knockdowns<br>
             </td>
-            <td style="text-align: center;"><br>
-            </td>
-            <td style="text-align: center;"><br>
-            </td>
-            <td style="text-align: center;"><br>
-            </td>
-            <td style="text-align: center;"><br>
-            </td>
-            <td style="text-align: center;"><br>
-            </td>
+            {%for x in f2_f1_k%}
+                <td style="text-align: center;"><small>{{x}}<br>
+                </td>
+            {%endfor%}
           </tr>
           <tr>
-            <td style="vertical-align: top; text-align: right;">Strikes<br>
+            <td style="vertical-align: top; text-align: right;"><small>Strikes<br>
             </td>
-            <td style="text-align: center;"><br>
+            {%for x in f2_f1_s%}
+                <td style="text-align: center;"><small>{{x}}<br>
+                </td>
+            {%endfor%}
+
+         </tr>
+          <tr>
+            <td style="vertical-align: top; text-align: right;"><small>Submission Attempts<br>
             </td>
-            <td style="text-align: center;"><br>
-            </td>
-            <td style="text-align: center;"><br>
-            </td>
-            <td style="text-align: center;"><br>
-            </td>
-            <td style="text-align: center;"><br>
-            </td>
+            {%for x in f2_f1_sub%}
+                <td style="text-align: center;"><small>{{x}}<br>
+                </td>
+            {%endfor%}
+
           </tr>
           <tr>
-            <td style="vertical-align: top; text-align: right;">Submission Attempts<br>
+            <td style="vertical-align: top; text-align: right;"><small>Taken Down<br>
             </td>
-            <td style="text-align: center;"><br>
-            </td>
-            <td style="text-align: center;"><br>
-            </td>
-            <td style="text-align: center;"><br>
-            </td>
-            <td style="text-align: center;"><br>
-            </td>
-            <td style="text-align: center;"><br>
-            </td>
+            {%for x in f2_f2_t%}
+                <td style="text-align: center;"><small>{{x}}<br>
+                </td>
+            {%endfor%}
           </tr>
           <tr>
-            <td style="vertical-align: top; text-align: right;">Taken Down<br>
+            <td style="vertical-align: top; text-align: right;"><small>Knocked Down<br>
             </td>
-            <td style="text-align: center;"><br>
-            </td>
-            <td style="text-align: center;"><br>
-            </td>
-            <td style="text-align: center;"><br>
-            </td>
-            <td style="text-align: center;"><br>
-            </td>
-            <td style="text-align: center;"><br>
-            </td>
+            {%for x in f2_f2_k%}
+                <td style="text-align: center;"><small>{{x}}<br>
+                </td>
+            {%endfor%}
           </tr>
           <tr>
-            <td style="vertical-align: top; text-align: right;">Knocked Down<br>
+            <td style="vertical-align: top; text-align: right;"><small>Strikes Absorbed<br>
             </td>
-            <td style="text-align: center;"><br>
-            </td>
-            <td style="text-align: center;"><br>
-            </td>
-            <td style="text-align: center;"><br>
-            </td>
-            <td style="text-align: center;"><br>
-            </td>
-            <td style="text-align: center;"><br>
-            </td>
+            {%for x in f2_f2_s%}
+                <td style="text-align: center;"><small>{{x}}<br>
+                </td>
+            {%endfor%}
           </tr>
           <tr>
-            <td style="vertical-align: top; text-align: right;">Strikes Absorbed<br>
+            <td style="vertical-align: top; text-align: right;"><small>Submission Defenses<br>
             </td>
-            <td style="text-align: center;"><br>
-            </td>
-            <td style="text-align: center;"><br>
-            </td>
-            <td style="text-align: center;"><br>
-            </td>
-            <td style="text-align: center;"><br>
-            </td>
-            <td style="text-align: center;"><br>
-            </td>
-          </tr>
-          <tr>
-            <td style="vertical-align: top; text-align: right;">Submission Defenses<br>
-            </td>
-            <td style="text-align: center;"><br>
-            </td>
-            <td style="text-align: center;"><br>
-            </td>
-            <td style="text-align: center;"><br>
-            </td>
-            <td style="text-align: center;"><br>
-            </td>
-            <td style="text-align: center;"><br>
-            </td>
-          </tr>
-          <tr>
-            <td style="vertical-align: top; text-align: right;">Time<br>
-            </td>
-            <td style="text-align: center;"><br>
-            </td>
-            <td style="text-align: center;"><br>
-            </td>
-            <td style="text-align: center;"><br>
-            </td>
-            <td style="text-align: center;"><br>
-            </td>
-            <td style="text-align: center;"><br>
-            </td>
+            {%for x in f2_f2_sub%}
+                <td style="text-align: center;"><small>{{x}}<br>
+                </td>
+            {%endfor%}
           </tr>
         </tbody>
       </table>
