@@ -1,0 +1,26 @@
+-- Dallas Jones drj2115
+-- Colby Wise cjw2165
+-- Database account: drj2115
+
+-- Returns the name and weightclass of champions (rank = 1),
+-- alphabetically sorted by the weightclass' name.
+SELECT lname, fname, weightclass.name
+	FROM fighter
+	JOIN ranking ON fighter.fid = ranking.fid
+	JOIN weightclass ON fighter.wid = weightclass.wid
+	WHERE rank = 1
+	ORDER BY weightclass.name;
+
+-- Returns the average age of fighters by nationality,
+-- sorted alphabetically by nationality.
+SELECT nationality, AVG(AGE(dob))
+	FROM fighter
+	GROUP BY nationality
+	HAVING COUNT(*) > 0
+	ORDER BY nationality;
+
+-- Returns the names of all events that took place in the year
+-- 2000.
+SELECT eid, name, date
+	FROM event
+	WHERE event.date < '2001-01-01' AND event.date > '1999-12-31';
