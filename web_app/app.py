@@ -1,6 +1,6 @@
 #!/usr/bin/env python3.5
 """
-TEAM: Colby Wise & Dallas 
+TEAM: Colby Wise & Dallas Jones 
 UNIs: CJW2165 | DRJ2115
 DB ADDRESS: DRJ2115
 COMS W4111 Part 1.3
@@ -9,10 +9,9 @@ README --help
 """
 import re
 import os
-from datetime import date
-#import pandas as pd 
-#import numpy as np 
+import pandas as pd 
 
+from datetime import date
 from sqlalchemy import create_engine, MetaData, Table, Column, String, Integer
 from sqlalchemy import ForeignKey, insert, select, case, cast, Float
 from sqlalchemy.pool import NullPool
