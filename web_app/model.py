@@ -62,7 +62,7 @@ def get_stats(fid):
 	        (SELECT fid1, COUNT(f1_result) AS wins    
 	            FROM match
 	            WHERE f1_result='win'
-	            GROUP BY fid1) t4 ON t4.fid1=t1.fid1
+	            GROUP BY fid1) t4 ON t4.fid1=t1.fid1 
 	                LEFT OUTER JOIN
 	        (SELECT t1.fid1, 
 	                (t1.tot_rnds+t2.tot_rnds) as tot_rnds, 
