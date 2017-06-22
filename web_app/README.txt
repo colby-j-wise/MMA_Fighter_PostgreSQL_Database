@@ -1,5 +1,5 @@
 PostgreSQL Account: drj2115
-Application URL: http://<IP ADDRESS>:8111/
+Application URL: http://35.190.142.176:8111/
 
 Description of App:
 	The application allows you to view numerous statistics on Mixed-Martial Arts (MMA) fighters.

@@ -517,17 +517,7 @@ def results():
 	prev_fid1 = fighter1['fid']
 	prev_fid2 = fighter2['fid']
 
-	guesstimation = predict_result(prev_fid1, prev_fid2)
-	guess = None
-	if guesstimation < 0:
-		guess = "WINNER ->\n%s %s" % (fighter2['fname'], fighter2['lname'])
-	elif guesstimation > 0:
-		guess = "<- WINNER\n%s %s" % (fighter1['fname'], fighter1['lname'])
-	else:
-		guess = "DRAW"
-
 	return render_template('index.html',
-				odds=guess,
 				f1_stats=show_f1_stats,
 				f2_stats=show_f2_stats,
 				prev_f1=prev_fighter1,
@@ -665,63 +655,6 @@ def fill_fighter(query):
 def get_age(birthdate):
 	today = date.today()
 	return today.year - birthdate.year - ((today.month, today.day) < (birthdate.month, birthdate.day))
-
-
-def predict_result(fid1, fid2):
-	query = g.conn.execute("SELECT COUNT(*) " \
-				"FROM event e, match m "\
-				"WHERE e.eid = m.eid and (m.fid1 = %d and m.f1_result = 'win' " \
-				" or m.fid2 = %d and m.f1_result = 'loss') " % (fid1, fid1))
-	wins1 = 0
-	for row in query:
-		wins1 = row[0]
-	query = g.conn.execute("SELECT COUNT(*) " \
-				"FROM event e, match m "\
-				"WHERE e.eid = m.eid and (m.fid1 = %d and m.f1_result = 'loss' " \
-				" or m.fid2 = %d and m.f1_result = 'win') " % (fid1, fid1))
-	losses1 = 0
-	for row in query:
-		losses1 = row[0]
-	query = g.conn.execute("SELECT COUNT(*) " \
-				"FROM event e, match m "\
-				"WHERE e.eid = m.eid and (m.fid1 = %d and m.f1_result = 'win' " \
-				" or m.fid2 = %d and m.f1_result = 'loss') " % (fid2, fid2))
-	wins2 = 0
-	for row in query:
-		wins2 = row[0]
-	query = g.conn.execute("SELECT COUNT(*) " \
-				"FROM event e, match m "\
-				"WHERE e.eid = m.eid and (m.fid1 = %d and m.f1_result = 'loss' " \
-				" or m.fid2 = %d and m.f1_result = 'win') " % (fid2, fid2))
-	print("JR")
-	losses2 = 0
-	for row in query:
-		losses2 = row[0]
-
-	query = g.conn.execute("SELECT * FROM fighter f where fid = %d" % fid1)
-	wt1 = 0
-	ht1 = 0
-	wt2 = 0
-	ht2 = 0
-	for row in query:
-		wt1 = row['weight']
-		ht1 = row['height']
-	query = g.conn.execute("SELECT * FROM fighter f where fid = %d" % fid2)
-	for row in query:
-		wt2 = row['weight']
-		ht2 = row['height']
-
-	score = 0
-	if wt1 != None and wt1 != 0 and wt2 != None and wt2 != 0:
-		score = .5 * (wt1 - wt2)
-	if ht1 != None and ht1 != 0 and ht2 != None and ht2 != 0:
-		score += 4.0 * (ht1 - ht2)
-
-	score += 5.0 * (wins1 - wins2)
-	score -= 5.0 * (losses1 - losses2)
-	
-	query.close()
-	return score
 
 if __name__== "__main__":
 	import click
