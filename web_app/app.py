@@ -17,6 +17,197 @@ from sqlalchemy import ForeignKey, insert, select, case, cast, Float
 from sqlalchemy.pool import NullPool
 from flask import Flask, request, render_template, g, redirect, Response
 
+class Match:
+	def __init__(self):
+		self.name = None
+		self.location = None
+		self.opp_name = None
+		self.time = None
+		self.result = None
+		self.round_num = []
+		self.knockdowns = []
+		self.takedowns = []
+		self.strikes = []
+		self.sub_att = []
+		self.opp_knockdowns = []
+		self.opp_takedowns = []
+		self.opp_strikes = []
+		self.opp_sub_att = []
+
+	def fill(self, eid, mid, swap):
+		# Get round data
+		query = g.conn.execute("SELECT * FROM round " \
+				       "WHERE eid = %d AND mid = %d " \
+				       "ORDER BY round_num" % (eid, mid))
+		i = 0
+		for row in query:
+			i += 1
+			self.round_num.append(i)
+			if swap:
+				self.knockdowns.append(row['f2_knockdowns'])
+				self.takedowns.append(row['f2_takedowns'])
+				self.strikes.append(row['f2_strikes'])
+				self.sub_att.append(row['f2_sub_att'])
+				self.opp_knockdowns.append(row['f1_knockdowns'])
+				self.opp_takedowns.append(row['f1_takedowns'])
+				self.opp_strikes.append(row['f1_strikes'])
+				self.opp_sub_att.append(row['f1_sub_att'])
+				continue
+
+			self.knockdowns.append(row['f1_knockdowns'])
+			self.takedowns.append(row['f1_takedowns'])
+			self.strikes.append(row['f1_strikes'])
+			self.sub_att.append(row['f1_sub_att'])
+			self.opp_knockdowns.append(row['f2_knockdowns'])
+			self.opp_takedowns.append(row['f2_takedowns'])
+			self.opp_strikes.append(row['f2_strikes'])
+			self.opp_sub_att.append(row['f2_sub_att'])
+		query.close()
+
+class Fighter:
+	def __init__(self):
+		self.fid = None
+		self.lname = None
+		self.fname = None
+		self.nname = None
+		self.dob = None
+		self.sex = None
+		self.nationality = None
+		self.wins = None
+		self.losses = None
+		self.draws = None
+		self.nc = None
+		self.weight = None
+		self.height = None
+		self.arm_reach = None
+		self.leg_reach = None
+		self.matches = []
+		self.team = []
+		self.rank_list = []
+		self.event_list = []
+
+	def fill(self, fid):
+		self.fid = fid
+
+		# Get basic fighter information
+		query = g.conn.execute("SELECT * " \
+				       "FROM fighter " \
+				       "WHERE fid = %d" % self.fid)
+		for row in query:
+			self.lname = row['lname']
+			self.fname = row['fname']
+			self.nname = row['nickname']
+			self.dob = row['dob']
+			self.sex = row['sex']
+			self.nationality = row['nationality']
+			self.weight = row['weight']
+			self.height = row['height']
+			self.arm_reach = row['arm_reach']
+			self.leg_reach = row['leg_reach']
+		query.close()
+
+		# Get data for all matches
+		query = g.conn.execute("SELECT e.name, f.lname, f.fname, " \
+						"f.nickname, m.eid, m.mid, " \
+						"m.fid1, m.f1_result, " \
+						"m.result_time, m.method, " \
+						"e.location " \
+				       "FROM event e, match m, fighter f " \
+				       "WHERE ((m.fid1 = %d AND f.fid = m.fid2) " \
+						"OR (m.fid1 = f.fid AND m.fid2 = %d)) " \
+						"AND m.eid = e.eid " \
+				       "ORDER BY e.eid, m.mid" % (self.fid, self.fid))
+
+		# For each match...
+		i = 0
+		for row in query:
+			i += 1
+			m = Match()
+			m.name = row['name']
+			m.location = row['location']
+			if row['fname']:
+				m.opp_name = row['fname']
+			if row['lname']:
+				if m.opp_name:
+					m.opp_name += " " + row['lname']
+				else:
+					m.opp_name = row['lname']
+			self.event_list.append("%d. %s - vs %s" %(i, m.name, m.opp_name))
+			if row['result_time']:
+				m.time = row['result_time']
+			swap = False
+			result = row['f1_result'].upper()
+			method = row['method'].upper()
+			if result == 'DRAW' or result == 'NC':
+				m.result = result
+			elif row['fid1'] != self.fid:
+				swap = True
+				if result == 'WIN':
+					m.result = 'LOSS'
+				else:
+					m.result = 'WIN'
+			else:
+				m.result = result
+
+			if method:
+				m.result += " BY " + method
+
+			m.fill(row['eid'], row['mid'], swap)
+
+			self.matches.append(m)
+		query.close()
+
+		# Add ranks to the rank_list
+		query = g.conn.execute("SELECT w.name, r.rank " \
+				       "FROM ranking r, weightclass w " \
+				       "WHERE r.fid = %d AND r.wid = w.wid" \
+					% self.fid)
+		for row in query:
+			self.rank_list.append("#%d %s" % (row['rank'], row['name']))
+		query.close()
+
+		# Count wins
+		query = g.conn.execute("SELECT COUNT(*) " \
+				       "FROM event e, match m " \
+				       "WHERE e.eid = m.eid AND " \
+				             "((m.fid1 = %d AND m.f1_result = 'win') OR" \
+					     "(m.fid2 = %d AND m.f1_result = 'loss'))" \
+					     % (self.fid, self.fid))
+		for row in query:
+			self.wins = row[0]
+		query.close()
+
+		# Count losses
+		query = g.conn.execute("SELECT COUNT(*) " \
+				       "FROM event e, match m " \
+				       "WHERE e.eid = m.eid AND " \
+				             "((m.fid1 = %d AND m.f1_result = 'loss') OR" \
+					     "(m.fid2 = %d AND m.f1_result = 'win'))" \
+					     % (self.fid, self.fid))
+		for row in query:
+			self.losses = row[0]
+		query.close()
+
+		# Count draws
+		query = g.conn.execute("SELECT COUNT(*) " \
+				       "FROM event e, match m " \
+				       "WHERE e.eid = m.eid AND " \
+				             "(m.fid1 = %d OR m.fid2 = %d) AND " \
+					     "m.f1_result = 'draw'" % (self.fid, self.fid))
+		for row in query:
+			self.draws = row[0]
+		query.close()
+
+		# Count nc
+		query = g.conn.execute("SELECT COUNT(*) " \
+				       "FROM event e, match m " \
+				       "WHERE e.eid = m.eid AND " \
+				             "(m.fid1 = %d OR m.fid2 = %d) AND " \
+					     "m.f1_result = 'NC'" % (self.fid, self.fid))
+		for row in query:
+			self.nc = row[0]
+		query.close()
+
 # Create application and set path
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
@@ -67,7 +258,8 @@ def teardown_request(exception):
 	except Exception as e:
 		pass
 
-# map displayed fighter numbers to fids, careful not to expose fids to public (otherwise haxxers can break into the mainframe)
+# map displayed fighter numbers to fids, careful not to expose fids to
+# public (otherwise haxxers can break into the mainframe)
 fid_dict = dict()
 
 # map displayed match numbers to mids
@@ -76,7 +268,7 @@ f2_eid_dict = dict()
 f1_mid_dict = dict()
 f2_mid_dict = dict()
 
-default_fighters = []
+fighter_list = []
 
 @app.route('/')
 @app.route('/index')
@@ -85,7 +277,7 @@ def index():
 	Main page of web app. Displays boxers in drop down format. 
 	Lets users select boxers and display stats.
 	"""
-	global fid_dict, default_fighters
+	global fid_dict, fighter_list
 	# DEBUG: this is debugging code to see what request looks like
 	print(request.args)
 
@@ -97,7 +289,14 @@ def index():
 				"FROM fighter " \
 				"GROUP BY fid, lname, fname " \
 				"ORDER BY lname, fname")
-	default_fighters =[]
+
+	# Build fighter_list, a list of all the fighters' names, for use
+	# in the drop-down menu in index.html.  An index value is appended
+	# to the front of the string and mapped (via fid_dict) to the
+	# fighters' fids, thus when parsing the string of the drop-down
+	# selection, split the foremost integer and get the fighter's fid
+	# from fid_dict.
+	fighter_list =[]
 	i = 1
 	for fighter in result:
 		fid_dict[str(i)] = fighter['fid']
@@ -107,54 +306,67 @@ def index():
 		if len(fighter) > 2:
 			f += ', ' + str(fighter['fname'])
 		i += 1
-		default_fighters.append(f)
+		fighter_list.append(f)
 
 	result.close()
 	return render_template('index.html',
 				title='All the Fighters in the World',
 				user=fighting_words['name'],
-				fighter_list=default_fighters)
+				fighter_list=fighter_list)
 
+# Sets the drop-down selection to previous value (instead of having it reset
+# to the first each time).
 prev_fighter1 = None
 prev_fighter2 = None
-prev_fid1 = -1
-prev_fid2 = -1
+
+# Currently loaded fighters (avoid unnecessarily querying the same information
+# upon each POST).
+fighter1 = Fighter()
+fighter2 = Fighter()
+
+# Current match index (default to the first of the fighters' matches).
+idx1 = 0
+idx2 = 0
+
+# Same as with prev_fighter1/2, sets the drop-down selection to the previous
+# value.
+prev_event1 = None
+prev_event2 = None
 
 @app.route('/index', methods=['GET', 'POST'])
 def results():
-	global fid_dict, default_fighters, f1_eid_dict, f2_eid_dict, f1_mid_dict, f2_mid_dict, prev_fighter1, prev_fighter2, prev_fid1, prev_fid2
+	global fid_dict, fighter_list, prev_fighter1, prev_fighter2
+	global fighter1, fighter2, idx1, idx2, prev_event1, prev_event2
+
 	show_f1_stats = False
 	show_f2_stats = False
 	show_f1_events = False
 	show_f2_events = False
 	show_f1_ranks = False
 	show_f2_ranks = False
-	fighter1 = dict()
-	fighter2 = dict()
+	show_f1_match = False
+	show_f2_match = False
 
-	query = None
+	match1 = Match()
+	match2 = Match()
 
-	# DEBUG: this is debugging code to see what request looks like
-	print(request.args)
-
-	selection = None
+	# Get fighter information if a new fighter has been selected, otherwise,
+	# use previous information.
 	selection = request.form.get('select_fighter1')
-	prev_fighter1 = selection
-
-	if selection:
-		# Look up the actual fid in the fid dictionary fid_dict
-		fighter1['fid'] = fid_dict[re.split('. |, |\s |\n |\r |\t', str(selection))[0]]
-#	else BAD REQUEST
+	if prev_fighter1 != selection:
+		prev_fighter1 = selection
+		fid = fid_dict[re.split('. |, |\s |\n |\r |\t', str(selection))[0]]
+		fighter1 = Fighter()
+		fighter1.fill(fid)
 
 	selection = request.form.get('select_fighter2')
-	prev_fighter2 = selection
+	if prev_fighter2 != selection:
+		prev_fighter2 = selection
+		fid = fid_dict[re.split('. |, |\s |\n |\r |\t', str(selection))[0]]
+		fighter2 = Fighter()
+		fighter2.fill(fid)
 
-	if selection:
-		# Look up the actual fid in the fid dictionary fid_dict
-		fighter2['fid'] = fid_dict[re.split('. |, |\s |\n |\r |\t', str(selection))[0]]
-#	else BAD REQUEST
-
-	# Heinous, these flags be
+	# Check whether to display fighter information (stats) or rank information
 	selection = request.form.get('stats1')
 	if selection:
 		show_f1_stats = True
@@ -163,356 +375,45 @@ def results():
 	if selection:
 		show_f2_stats = True
 
-	selection = request.form.get('events1')
-	if selection:
-		show_f1_events = True
-	selection = request.form.get('events2')
-	if selection:
-		show_f2_events = True
-
 	selection = request.form.get('ranks1')
 	if selection:
 		show_f1_ranks = True
+
 	selection = request.form.get('ranks2')
 	if selection:
 		show_f2_ranks = True
 
-	# Select data from for fighter1
-	query = g.conn.execute("SELECT * FROM fighter WHERE fid = %d" % fighter1['fid'])
-	fighter1.update(fill_fighter(query))
+	# Select fighter1's match
+	selection = request.form.get('events1')
+	if selection:
+		show_f1_events = True
+		selection = request.form.get('select_event1')
+		if selection:
+			show_f1_match = True
+			if selection != prev_event1:
+				prev_event1 = selection
+				idx1 = int(re.split('. |, |\s |\n |\r |\t', str(selection))[0]) - 1
+			match1 = fighter1.matches[idx1]
 
-	# Count wins for fighter1
-	query = g.conn.execute("SELECT COUNT(*) " \
-				"FROM event e, match m "\
-				"WHERE e.eid = m.eid and (m.fid1 = %d and m.f1_result = 'win' " \
-				" or m.fid2 = %d and m.f1_result = 'loss') " % (fighter1['fid'], fighter1['fid']))
-	for row in query:
-		fighter1['wins'] =row[0]
+	# Select fighter2's match
+	selection = request.form.get('events2')
+	if selection:
+		show_f2_events = True
+		selection = request.form.get('select_event2')
+		if selection:
+			show_f2_match = True
+			if selection != prev_event2:
+				prev_event2 = selection
+				idx2 = int(re.split('. |, |\s |\n |\r |\t', str(selection))[0]) - 1
+			match2 = fighter2.matches[idx2]
 
-	# Count losses for fighter1
-	query = g.conn.execute("SELECT COUNT(*) " \
-				"FROM event e, match m "\
-				"WHERE e.eid = m.eid and (m.fid1 = %d and m.f1_result = 'loss' " \
-				" or m.fid2 = %d and m.f1_result = 'win') " % (fighter1['fid'], fighter1['fid']))
-	for row in query:
-		fighter1['losses'] =row[0]
-
-	# Count draws for fighter1
-	query = g.conn.execute("SELECT COUNT(*) " \
-				"FROM event e, match m "\
-				"WHERE e.eid = m.eid and (m.fid1 = %d or m.fid2 = %d) " \
-				"and  m.f1_result = 'draw' " % (fighter1['fid'], fighter1['fid']))
-	for row in query:
-		fighter1['draws'] =row[0]
-
-	# Count nc for fighter1
-	query = g.conn.execute("SELECT COUNT(*) " \
-				"FROM event e, match m "\
-				"WHERE e.eid = m.eid and (m.fid1 = %d or m.fid2 = %d) " \
-				"and  m.f1_result = 'nc' " % (fighter1['fid'], fighter1['fid']))
-	for row in query:
-		fighter1['nc'] =row[0]
-
-	# Get stats for fighter2
-	query = g.conn.execute("SELECT * FROM fighter WHERE fid = %d" % fighter2['fid'])
-	fighter2.update(fill_fighter(query))
-
-	# Count wins for fighter2
-	query = g.conn.execute("SELECT COUNT(*) " \
-				"FROM event e, match m "\
-				"WHERE e.eid = m.eid and (m.fid1 = %d and m.f1_result = 'win' " \
-				" or m.fid2 = %d and m.f1_result = 'loss') " % (fighter2['fid'], fighter2['fid']))
-	for row in query:
-		fighter2['wins'] =row[0]
-
-	# Count losses for fighter2
-	query = g.conn.execute("SELECT COUNT(*) " \
-				"FROM event e, match m "\
-				"WHERE e.eid = m.eid and (m.fid1 = %d and m.f1_result = 'loss' " \
-				" or m.fid2 = %d and m.f1_result = 'win') " % (fighter2['fid'], fighter2['fid']))
-	for row in query:
-		fighter2['losses'] =row[0]
-
-	# Count draws for fighter2
-	query = g.conn.execute("SELECT COUNT(*) " \
-				"FROM event e, match m "\
-				"WHERE e.eid = m.eid and (m.fid1 = %d or m.fid2 = %d) " \
-				"and  m.f1_result = 'draw' " % (fighter2['fid'], fighter2['fid']))
-	for row in query:
-		fighter2['draws'] =row[0]
-
-	# Count nc for fighter2
-	query = g.conn.execute("SELECT COUNT(*) " \
-				"FROM event e, match m "\
-				"WHERE e.eid = m.eid and (m.fid1 = %d or m.fid2 = %d) " \
-				"and  m.f1_result = 'nc' " % (fighter2['fid'], fighter2['fid']))
-	for row in query:
-		fighter2['nc'] =row[0]
-
-	event_list1 = []
-	event_list2 = []
-	rank_list1 = []
-	rank_list2 = []
-
-	show_f1_match = False
-	show_f2_match = False
-
-	f1_ename = None
-	f2_ename = None
-	f1_loc = None
-	f2_loc = None
-	f1_opp = None
-	f2_opp = None
-	f1_res = None
-	f2_res = None
-
-	f1_rnum = []
-	f1_f1s = []
-	f1_f1k = []
-	f1_f1t = []
-	f1_f1sub = []
-	f1_f2s = []
-	f1_f2k = []
-	f1_f2t = []
-	f1_f2sub = []
-
-	swap = True
-	selection = request.form.get('select_event1')
-	prev_event1 = selection
-	if selection and (prev_fid1 == fighter1['fid']):
-		tok = str(selection).split(".")[0]
-		eid = f1_eid_dict[tok]
-		mid = f1_mid_dict[tok]
-		f1_fid = fighter1['fid']
-
-		query = g.conn.execute("SELECT e.name, e.location, m.f1_result, m.method, f.lname, f.fname, m.fid1 " \
-					"FROM event e, match m, fighter f " \
-					"WHERE e.eid = m.eid AND ((m.fid1 = %d AND m.fid2 = f.fid) " \
-					"OR (m.fid2 = %d AND m.fid1 = f.fid)) AND m.mid = %d AND m.eid = %d" % \
-					(f1_fid, f1_fid, mid, eid))
-
-		show_f1_match = True
-		for row in query:
-			f1_ename = row['name']
-			f1_loc = row['location']
-			if row['lname'] and row['fname']:
-				f1_opp = "%s, %s" % (row['lname'], row['fname'])
-			elif row['lname']:
-				f1_opp = row['lname']
-			elif row['fname']:
-				f1_opp = row['fname']
-			else:
-				f1_opp = "?"
-			result = row['f1_result']
-			method = row['method']
-
-			if row['fid1'] == f1_fid:
-				swap = False
-
-				if method:
-					f1_res = "%s, %s" % (result, method)
-				else:
-					f1_res = result
-			elif result == "win":
-				if method:
-					f1_res = "loss, %s" % method
-			elif result == "draw":
-				f1_res = result
-			elif method != None:
-				f1_res = "no contest, %s" % method
-			else:
-				f1_res = "no contest"
-
-		# Get round data
-		query = g.conn.execute("SELECT * FROM round r WHERE r.eid = %d and r.mid = %d ORDER BY r.round_num" % (eid, mid))
-		for row in query:
-			f1_rnum.append(row['round_num'])
-			f1_f1s.append(row['f1_strikes'])
-			f1_f1k.append(row['f1_knockdowns'])
-			f1_f1t.append(row['f1_takedowns'])
-			f1_f1sub.append(row['f1_sub_att'])
-			f1_f2s.append(row['f2_strikes'])
-			f1_f2k.append(row['f2_knockdowns'])
-			f1_f2t.append(row['f2_takedowns'])
-			f1_f2sub.append(row['f2_sub_att'])
-
-		if swap:
-			tmp = f1_f1s
-			f1_f1s = f1_f2s
-			f1_f2s = tmp
-
-			tmp = f1_f1k
-			f1_f1k = f1_f2k
-			f1_f2k = tmp
-
-			tmp = f1_f1t
-			f1_f1t = f1_f2t
-			f1_f2t = tmp
-
-			tmp = f1_f1sub
-			f1_f1sub = f1_f2sub
-			f1_f2sub = tmp
-
-	selection = request.form.get('select_event2')
-	prev_event2 = selection
-
-	f2_rnum = []
-	f2_f1s = []
-	f2_f1k = []
-	f2_f1t = []
-	f2_f1sub = []
-	f2_f2s = []
-	f2_f2k = []
-	f2_f2t = []
-	f2_f2sub = []
-
-	swap = True
-	if selection and (prev_fid2 == fighter2['fid']):
-		tok = str(selection).split(".")[0]
-		eid = f2_eid_dict[tok]
-		mid = f2_mid_dict[tok]
-		f2_fid = fighter2['fid']
-		# query basic match information (location, event, opponent, result)
-		query = g.conn.execute("SELECT e.name, e.location, m.f1_result, m.method, f.lname, f.fname, m.fid1 " \
-					"FROM event e, match m, fighter f " \
-					"WHERE e.eid = m.eid AND ((m.fid1 = %d AND m.fid2 = f.fid) " \
-					"OR (m.fid2 = %d AND m.fid1 = f.fid)) AND m.mid = %d AND m.eid = %d" % \
-					(f2_fid, f2_fid, mid, eid))
-		show_f2_match = True
-		for row in query:
-			f2_ename = row['name']
-			f2_loc = row['location']
-			if row['lname'] and row['fname']:
-				f2_opp = "%s, %s" % (row['lname'], row['fname'])
-			elif row['lname']:
-				f2_opp = row['lname']
-			elif row['fname']:
-				f2_opp = row['fname']
-			else:
-				f2_opp = "?"
-			result = row['f1_result']
-			method = row['method']
-			if row['fid1'] == f2_fid:
-				swap = False
-				if method != None:
-					f2_res = "%s, %s" % (result, method)
-				else:
-					f2_res = result
-			elif result == "win":
-				if method:
-					f2_res = "loss, %s" % method
-			elif result == "draw":
-				f2_res = result
-			elif method != None:
-				f2_res = "no contest, %s" % method
-			else:
-				f2_res = "no contest"
-
-		query = g.conn.execute("SELECT * FROM round r WHERE r.eid = %d and r.mid = %d ORDER BY r.round_num" % (eid, mid))
-		for row in query:
-			f2_rnum.append(row['round_num'])
-			f2_f1s.append(row['f1_strikes'])
-			f2_f1k.append(row['f1_knockdowns'])
-			f2_f1t.append(row['f1_takedowns'])
-			f2_f1sub.append(row['f1_sub_att'])
-			f2_f2s.append(row['f2_strikes'])
-			f2_f2k.append(row['f2_knockdowns'])
-			f2_f2t.append(row['f2_takedowns'])
-			f2_f2sub.append(row['f2_sub_att'])
-
-		if swap:
-			tmp = f2_f1s
-			f2_f1s = f2_f2s
-			f2_f2s = tmp
-
-			tmp = f2_f1k
-			f2_f1k = f2_f2k
-			f2_f2k = tmp
-
-			tmp = f2_f1t
-			f2_f1t = f2_f2t
-			f2_f2t = tmp
-
-			tmp = f2_f1sub
-			f2_f1sub = f2_f2sub
-			f2_f2sub = tmp
-
-	if show_f1_events:
-		query = g.conn.execute("SELECT m.mid, e.eid, e.name, f2.lname " \
-					"FROM match m, event e, fighter f, (SELECT fid, lname " \
-                                                                           "FROM fighter)f2 " \
-                                        "WHERE m.eid = e.eid AND " \
-                                              "((m.fid1 = f.fid AND m.fid2 = f2.fid) OR " \
-                                              "(m.fid1 = f2.fid AND m.fid2 = f.fid)) AND " \
-                                              "f.fid = %d " \
-                                        "GROUP BY e.eid, e.name, m.mid, f2.lname " \
-                                        "ORDER BY e.eid, e.name, m.mid" % fighter1['fid'])
-
-		f1_eid_dict.clear()
-		f1_mid_dict.clear()
-		i = 1
-		for row in query:
-			f1_eid_dict[str(i)] = row['eid']
-			f1_mid_dict[str(i)] = row['mid']
-			event_list1.append("%d. %s - vs %s" % (i, row['name'], row['lname']))
-			i += 1
-
-	if show_f2_events:
-		query = g.conn.execute("SELECT m.mid, e.eid, e.name, f2.lname " \
-					"FROM match m, event e, fighter f, (SELECT fid, lname " \
-                                                                           "FROM fighter)f2 " \
-                                        "WHERE m.eid = e.eid AND " \
-                                              "((m.fid1 = f.fid AND m.fid2 = f2.fid) OR " \
-                                              "(m.fid1 = f2.fid AND m.fid2 = f.fid)) AND " \
-                                              "f.fid = %d " \
-                                        "GROUP BY e.eid, e.name, m.mid, f2.lname " \
-                                        "ORDER BY e.eid, e.name, m.mid" % fighter2['fid'])
-		f2_eid_dict.clear()
-		f2_mid_dict.clear()
-		i = 1
-		for row in query:
-			f2_mid_dict[str(i)] = row['mid']
-			f2_eid_dict[str(i)] = row['eid']
-			event_list2.append("%d. %s - vs %s" % (i, row['name'], row['lname']))
-			i += 1
-
-	if show_f1_ranks:
-		query = g.conn.execute("SELECT w.name, r.rank " \
-					"FROM ranking r, fighter f, weightclass w " \
-					"WHERE f.fid = r.fid AND r.wid = w.wid " \
-					"AND f.fid = %d" % fighter1['fid'])
-		for row in query:
-			if row['rank'] != None:
-				rank_list1.append("#%d %s" % (row['rank'], row['name']))
-			else:
-				rank_list1.append(row['name'])
-
-	if show_f2_ranks:
-		query = g.conn.execute("SELECT w.name, r.rank " \
-					"FROM ranking r, fighter f, weightclass w " \
-					"WHERE f.fid = r.fid AND r.wid = w.wid " \
-					"AND f.fid = %d" % fighter2['fid'])
-		for row in query:
-			if row['rank'] != None:
-				rank_list2.append("#%d %s" % (row['rank'], row['name']))
-			else:
-				rank_list2.append(row['name'])
-
-	query = g.conn.execute("SELECT eid, mid, result_rnd, result_time "\
-				"FROM match " \
-				"GROUP BY eid, mid, result_rnd, result_time "\
-				"ORDER BY eid, mid")
-	query.close()
-
-	prev_fid1 = fighter1['fid']
-	prev_fid2 = fighter2['fid']
-
-	guesstimation = predict_result(prev_fid1, prev_fid2)
+	# Get fighter prediction
+	guesstimation = predict_result(fighter1.fid, fighter2.fid)
 	guess = None
 	if guesstimation < 0:
-		guess = "WINNER ->\n%s %s" % (fighter2['fname'], fighter2['lname'])
+		guess = "WINNER ->\n%s %s" % (fighter2.fname, fighter2.lname)
 	elif guesstimation > 0:
-		guess = "<- WINNER\n%s %s" % (fighter1['fname'], fighter1['lname'])
+		guess = "<- WINNER\n%s %s" % (fighter1.fname, fighter1.lname)
 	else:
 		guess = "DRAW"
 
@@ -528,136 +429,80 @@ def results():
 				f2_events=show_f2_events,
 				f1_match=show_f1_match,
 				f2_match=show_f2_match,
-				f1_event_name = f1_ename,
-				f2_event_name = f2_ename,
-				f1_location = f1_loc,
-				f2_location = f2_loc,
-				f1_opponent = f1_opp,
-				f2_opponent = f2_opp,
-				f1_result = f1_res,
-				f2_result = f2_res,
-				f1_events_list=event_list1,
-				f2_events_list=event_list2,
+				f1_event_name = match1.name,
+				f2_event_name = match2.name,
+				f1_location = match1.location,
+				f2_location = match2.location,
+				f1_opponent = match1.opp_name,
+				f2_opponent = match2.opp_name,
+				f1_result = match1.result,
+				f2_result = match2.result,
+				f1_events_list = fighter1.event_list,
+				f2_events_list = fighter2.event_list,
 				f1_ranks=show_f1_ranks,
 				f2_ranks=show_f2_ranks,
-				f1_rank_list=rank_list1,
-				f2_rank_list=rank_list2,
+				f1_rank_list = fighter1.rank_list,
+				f2_rank_list = fighter2.rank_list,
 
-				f1_rd_nums=f1_rnum,
-				f1_f1_s=f1_f1s,
-				f1_f1_k=f1_f1k,
-				f1_f1_t=f1_f1t,
-				f1_f1_sub=f1_f1sub,
-				f1_f2_s=f1_f2s,
-				f1_f2_k=f1_f2k,
-				f1_f2_t=f1_f2t,
-				f1_f2_sub=f1_f2sub,
+				f1_rd_nums = match1.round_num,
+				f1_f1_s = match1.strikes,
+				f1_f1_k = match1.knockdowns,
+				f1_f1_t = match1.takedowns,
+				f1_f1_sub = match1.sub_att,
+				f1_f2_s = match1.opp_strikes,
+				f1_f2_k = match1.opp_knockdowns,
+				f1_f2_t = match1.opp_takedowns,
+				f1_f2_sub = match1.opp_sub_att,
 
-				f2_rd_nums=f2_rnum,
-				f2_f1_s=f2_f1s,
-				f2_f1_k=f2_f1k,
-				f2_f1_t=f2_f1t,
-				f2_f1_sub=f2_f1sub,
-				f2_f2_s=f2_f2s,
-				f2_f2_k=f2_f2k,
-				f2_f2_t=f2_f2t,
-				f2_f2_sub=f2_f2sub,
+				f2_rd_nums = match2.round_num,
+				f2_f1_s = match2.strikes,
+				f2_f1_k = match2.knockdowns,
+				f2_f1_t = match2.takedowns,
+				f2_f1_sub = match2.sub_att,
+				f2_f2_s = match2.opp_strikes,
+				f2_f2_k = match2.opp_knockdowns,
+				f2_f2_t = match2.opp_takedowns,
+				f2_f2_sub = match2.opp_sub_att,
 
-				fname1=fighter1['fname'],
-				age1=fighter1['age'],
-				nname1=fighter1['nickname'],
-				lname1=fighter1['lname'],
-				wt1=fighter1['wt'],
-				ht1=fighter1['ht'],
-				nation1=fighter1['nationality'],
-				wins1=fighter1['wins'],
-				losses1=fighter1['losses'],
-				draws1=fighter1['draws'],
-				nc1=fighter1['nc'],
-				areach1=fighter1['arm_reach'],
-				lreach1=fighter1['leg_reach'],
+				fname1 = fighter1.fname,
+				age1 = get_age(fighter1.dob),
+				nname1 = fighter1.nname,
+				lname1 = fighter1.lname,
+				wt1 = fighter1.weight,
+				ht1 = fighter1.height,
+				nation1 = fighter1.nationality,
+				wins1 = fighter1.wins,
+				losses1 = fighter1.losses,
+				draws1 = fighter1.draws,
+				nc1 = fighter1.nc,
+				areach1 = fighter1.arm_reach,
+				lreach1 = fighter1.leg_reach,
 
-				fname2=fighter2['fname'],
-				age2=fighter2['age'],
-				nname2=fighter2['nickname'],
-				lname2=fighter2['lname'],
-				wt2=fighter2['wt'],
-				ht2=fighter2['ht'],
-				nation2=fighter2['nationality'],
-				wins2=fighter2['wins'],
-				losses2=fighter2['losses'],
-				draws2=fighter2['draws'],
-				nc2=fighter2['nc'],
-				areach2=fighter2['arm_reach'],
-				lreach2=fighter2['leg_reach'],
-				fighter_list=default_fighters)
-
-def fill_fighter(query):
-	if query == None:
-		return None
-	fighter = dict()
-	for row in query:
-		if row['lname']:
-			fighter['lname'] = str(row['lname'])
-		else:
-			fighter['lname'] = None
-		if row['fname']:
-			fighter['fname'] = str(row['fname'])
-		else:
-			fighter['fname'] = None
-		if row['nickname']:
-			fighter['nickname'] = str(row['nickname'])
-		else:
-			fighter['nickname'] = None
-		if row['dob']:
-			fighter['age'] = get_age(row['dob'])
-		else:
-			fighter['age'] = None
-		if row['nationality']:
-			fighter['nationality'] = str(row['nationality'])
-		else:
-			fighter['nationality'] = None
-		if row['wins']:
-			fighter['wins'] = row['wins']
-		else:
-			fighter['wins'] = 0
-		if row['losses']:
-			fighter['losses'] = row['losses']
-		else:
-			fighter['losses'] = 0
-		if row['draws']:
-			fighter['draws'] = row['draws']
-		else:
-			fighter['draws'] = None
-		if row['nc']:
-			fighter['nc'] = row['nc']
-		else:
-			fighter['nc'] = None
-		if row['weight']:
-			fighter['wt'] = row['weight']
-		else:
-			fighter['wt'] = None
-		if row['height']:
-			fighter['ht'] = row['height']
-		else:
-			fighter['ht'] = None
-		if row['arm_reach']:
-			fighter['arm_reach'] = row['arm_reach']
-		else:
-			fighter['arm_reach'] = None
-		if row['leg_reach']:
-			fighter['leg_reach'] = row['leg_reach']
-		else:
-			fighter['leg_reach'] = None
-
-	return fighter
+				fname2 = fighter2.fname,
+				age2 = get_age(fighter2.dob),
+				nname2 = fighter2.nname,
+				lname2 = fighter2.lname,
+				wt2 = fighter2.weight,
+				ht2 = fighter2.height,
+				nation2 = fighter2.nationality,
+				wins2 = fighter2.wins,
+				losses2 = fighter2.losses,
+				draws2 = fighter2.draws,
+				nc2 = fighter2.nc,
+				areach2 = fighter2.arm_reach,
+				lreach2 = fighter2.leg_reach,
+				fighter_list = fighter_list)
 
 def get_age(birthdate):
-	today = date.today()
-	return today.year - birthdate.year - ((today.month, today.day) < (birthdate.month, birthdate.day))
+	if birthdate:
+		today = date.today()
+		return today.year - birthdate.year - ((today.month, today.day) < (birthdate.month, birthdate.day))
+	return None
 
 
 def predict_result(fid1, fid2):
+	if fid1 == None or fid2 == None:
+		return None
 	query = g.conn.execute("SELECT COUNT(*) " \
 				"FROM event e, match m "\
 				"WHERE e.eid = m.eid and (m.fid1 = %d and m.f1_result = 'win' " \
@@ -712,6 +557,7 @@ def predict_result(fid1, fid2):
 	query.close()
 	return score
 
+
 if __name__== "__main__":
 	import click
 
@@ -727,6 +573,3 @@ if __name__== "__main__":
 		app.run(host=HOST, port=PORT, debug=debug, threaded=threaded)
 
 run()
-
-
-
