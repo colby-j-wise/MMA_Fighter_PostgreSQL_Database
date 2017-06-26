@@ -22,28 +22,36 @@ WHERE m.prize_money[1]=(SELECT MAX(prize_money[1]) FROM match);
 
 2.  Returns fighter id, first name, last name, endorsement earnings, fight earnings, and total earnings (endorsement + fight) for fighters who have made money from fighting or endorsements or both. 
 
-SELECT f.fid, f.fname, f.lname, temp.endorsements, temp.fight_earnings, (temp.endorsements+temp.fight_earnings) as total_earnings
-FROM fighter f JOIN
-(SELECT t2.fid2, COALESCE(t1.endorsements,0) as endorsements, COALESCE(t2.fight_earnings,0) as fight_earnings
-FROM (SELECT f.fid, f.fname, COALESCE(SUM((income).money),0) as endorsements 
-		FROM fighter f RIGHT OUTER JOIN endorsements e ON f.fid=e.fid
-		GROUP BY f.fid, f.fname) t1
-	RIGHT OUTER JOIN 
-		(SELECT fid2, (COALESCE(m1_sum,0)+COALESCE(m2_sum,0)) as fight_earnings
-		FROM (SELECT fid1, SUM(m.prize_money[1]) as m1_sum
-				FROM match m
-				WHERE m.prize_money[1] IS NOT NULL
-				GROUP BY fid1) m1
-	RIGHT OUTER JOIN 	
-		(SELECT fid2, SUM(m.prize_money[2]) as m2_sum
-			FROM match m
-			WHERE m.prize_money[2] IS NOT NULL
-			GROUP BY fid2) m2 ON m1.fid1=m2.fid2
-		) t2 ON t1.fid=t2.fid2
-GROUP BY t2.fid2, t1.endorsements, t2.fight_earnings) temp ON f.fid=temp.fid2
+SELECT temp1.fid, temp1.fname, temp1.lname, (temp1.fight_earnings + temp2.fight_earnings) as fight_earnings, temp3.endorsements, (temp1.fight_earnings + temp2.fight_earnings + temp3.endorsements) as total_earnings
+FROM (
+		SELECT fid, fname, lname, (COALESCE(t1.sum,0)) as fight_earnings                 
+		FROM fighter f
+		FULL JOIN                                                               
+		(SELECT m.fid1, COALESCE(SUM(m.prize_money[1]),0) as sum                
+		FROM match m
+		GROUP BY m.fid1) t1 ON fid=t1.fid1
+	) temp1
+	FULL JOIN
+	(
+		SELECT fid, fname, lname, (COALESCE(t2.sum,0)) as fight_earnings                 
+		FROM fighter f
+		FULL JOIN                                                               
+		(SELECT m.fid2, COALESCE(SUM(m.prize_money[2]),0) as sum                
+		FROM match m
+		GROUP BY m.fid2) t2 ON fid=t2.fid2
+	) temp2 ON temp1.fid=temp2.fid
+	FULL JOIN
+	(
+		SELECT f.fid, fname, lname, COALESCE(SUM((income).money),0) as endorsements 
+		FROM fighter f 
+		FULL JOIN endorsements e ON f.fid=e.fid
+		GROUP BY f.fid
+	) temp3 ON temp2.fid=temp3.fid
+WHERE (temp1.fight_earnings + temp2.fight_earnings + temp3.endorsements) > 0
+ORDER BY total_earnings DESC;
 
+3. Full Text Search to return the UFC event info, venue location, and date of all match (recaps) discussing TKOs i.e. if a user missed a specific UFC event and just wants to read about all the matches with TKOs! 
 
-
-
-
-
+SELECT name, location, date, match_recap
+FROM match m, event e
+WHERE m.eid=e.eid AND m.eid=47933 AND (to_tsvector('english', match_recap) @@ to_tsquery('english', 'TKO'));
