@@ -1,10 +1,10 @@
 CREATE TABLE Fighter
 (
-	fid			INTEGER NOT NULL,
+	fid		INTEGER NOT NULL,
 	fname		VARCHAR(255),
 	lname		VARCHAR(255),
-	dob			DATE,
-	sex			CHAR(1),
+	dob		DATE,
+	sex		CHAR(1),
 	nationality	VARCHAR(255),
 	weight		REAL,
 	height		REAL,
@@ -16,15 +16,15 @@ CREATE TABLE Fighter
 
 CREATE TABLE Team
 (
-	tid			INTEGER NOT NULL,
+	tid		INTEGER NOT NULL,
 	name		VARCHAR(255),
 	PRIMARY KEY (tid)
 );
 
 CREATE TABLE TeamMember
 (
-	fid			INTEGER NOT NULL,
-	tid			INTEGER NOT NULL,
+	fid		INTEGER NOT NULL,
+	tid		INTEGER NOT NULL,
 	PRIMARY KEY (fid, tid),
 	FOREIGN KEY (fid) REFERENCES Fighter(fid)
 		ON DELETE CASCADE,
@@ -34,7 +34,7 @@ CREATE TABLE TeamMember
 
 CREATE TABLE Weightclass
 (
-	wid			INTEGER NOT NULL,
+	wid		INTEGER NOT NULL,
 	name		VARCHAR(255) NOT NULL,
 	PRIMARY KEY (wid),
 	UNIQUE (name)
@@ -42,8 +42,8 @@ CREATE TABLE Weightclass
 
 CREATE TABLE Ranking
 (
-	fid			INTEGER NOT NULL,
-	wid			INTEGER NOT NULL,
+	fid		INTEGER NOT NULL,
+	wid		INTEGER NOT NULL,
 	rank		INTEGER,
 	PRIMARY KEY (fid, wid),
 	FOREIGN KEY (fid) REFERENCES Fighter(fid)
@@ -54,7 +54,7 @@ CREATE TABLE Ranking
 
 CREATE TABLE Event
 (
-	eid			INTEGER NOT NULL,
+	eid		INTEGER NOT NULL,
 	name		VARCHAR(255) NOT NULL,
 	location	VARCHAR(255),
 	date		DATE,
@@ -64,8 +64,8 @@ CREATE TABLE Event
 
 CREATE TABLE Match
 (
-	mid				INTEGER NOT NULL,
-	eid				INTEGER NOT NULL,
+	mid			INTEGER NOT NULL,
+	eid			INTEGER NOT NULL,
 	fid1			INTEGER NOT NULL,
 	fid2			INTEGER NOT NULL,
 	f1_result		VARCHAR(255),
@@ -86,17 +86,17 @@ CREATE TABLE Match
 
 CREATE TABLE Round
 (
-	eid				INTEGER NOT NULL,
-	mid				INTEGER NOT NULL,
-	round_num		INTEGER NOT NULL,
+	eid		INTEGER NOT NULL,
+	mid		INTEGER NOT NULL,
+	round_num	INTEGER NOT NULL,
 	f1_knockdowns	INTEGER,
-	f1_strikes		INTEGER,
+	f1_strikes	INTEGER,
 	f1_takedowns	INTEGER,
-	f1_sub_att		INTEGER,
+	f1_sub_att	INTEGER,
 	f2_knockdowns	INTEGER,
-	f2_strikes		INTEGER,
+	f2_strikes	INTEGER,
 	f2_takedowns	INTEGER,
-	f2_sub_att		INTEGER,
+	f2_sub_att	INTEGER,
 	PRIMARY KEY (eid, mid, round_num),
 	FOREIGN KEY (mid, eid) REFERENCES Match(mid, eid)
 		ON DELETE CASCADE
@@ -104,14 +104,14 @@ CREATE TABLE Round
 
 
 CREATE TYPE income_source AS (
-	company			TEXT,
-	description		TEXT,
-	money			NUMERIC
+	company		TEXT,
+	description	TEXT,
+	money		NUMERIC
 );
 
 CREATE TABLE endorsements (
-	fid				INTEGER NOT NULL,
-	income			income_source,
+	fid		INTEGER NOT NULL,
+	income		income_source,
 	PRIMARY KEY (fid, income),
 	FOREIGN KEY (fid) REFERENCES Fighter(fid)
 		ON DELETE CASCADE	
