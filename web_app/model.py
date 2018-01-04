@@ -1,7 +1,4 @@
-#import numpy as np
 import pandas as pd
-#import matplotlib.pyplot as plt
-#import seaborn as sns
 
 from sqlalchemy import create_engine, MetaData, Table, Column, String, Integer, ForeignKey
 from sqlalchemy import insert, select, case, cast, Float
@@ -11,7 +8,7 @@ from flask import Flask, request, render_template, g, redirect, Response
 
 
 # Connect to POSTGRESQL database
-def connect(user, password, db, host='35.185.80.252', port=5432):
+def connect(user, password, db, host='xx.xxx.xx.xxx', port='xxxx'):
 	""" 
 	Returns a connection and metadata object for preset host name/port
 	Requires user, password, and db = database name

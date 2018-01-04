@@ -1,8 +1,24 @@
-PostgreSQL Account: DRJ2115
-Team: Colby Wise (CJW2165) & Dallas Jones (DRJ2115)
+PostgreSQL Account: #####
+Team: Colby Wise & Dallas Jones
 
+# MMA Fighter PostgreSQL Database
+## PROJECT OVERVIEW
 
-DESCRIPTION OF DESIGN
+The goal of this project was to create a web app with a PostgreSQL backend with emphasis placed on design and architecture
+of the DB. The two main constraints were that we had to construct the database from scratch; and secondly, we were given
+only ~4 days to complete the project given a shortened course schedule. Hence functionality was higher priority than
+perfecting code quality and aesthetic design of the web app is at a minimum!  
+
+### WEB APP OVERVIEW
+
+The web app was hosted on local Columbia shared server. Hence to actually run the web app you'd need to copy the DB schema
+into your own PostgreSQL DB host on a remote server. From there modifying the web app src is straight forward. The web
+app lets you view fight statistics on MMA fighters such as height, weight, prev matches, win %, etc. Then using
+a trivial algorithm predicts which fighter would win in a head to head match up. 
+
+Future work would include implementing a non-trivial algorithm for statistically predicting win likelihood between two fighters.
+
+### DESCRIPTION OF DATABASE DESIGN
 
 1. COMPOSITE TYPE "income_source" - In the update schema we created a composite type call income_source which essentially takes a tuple of (company name [text], description [text], and money [numeric]). We use this composite type in a new table called "Endorsements" which basically keeps track of the endorsement money that the top fighters receive per company - i.e. Connor McGregor receives $1,000,000 in endorsements from Reebok as part of a merchandising deal. Again, this is used in a new table called Endorsements; also if a fighter is deleted their endorsements are deleted. 
 
